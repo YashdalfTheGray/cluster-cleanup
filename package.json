@@ -4,7 +4,9 @@
   "description": "Library to fill the gap between the SDK and the CLI/Console for AWS ECS",
   "main": "dist/index.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "build": "tsc",
+    "start": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -21,10 +23,15 @@
   },
   "homepage": "https://github.com/YashdalfTheGray/cluster-manager#readme",
   "devDependencies": {
+    "@types/node": "~9.6.6",
     "ava": "~0.25.0",
     "typescript": "~2.8.3"
   },
   "dependencies": {
     "aws-sdk": "~2.226.1"
+  },
+  "engines": {
+    "node": ">=8.6.x",
+    "npm": ">=5.6.x"
   }
 }

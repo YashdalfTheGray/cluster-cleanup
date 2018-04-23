@@ -1,0 +1,30 @@
+{
+  "name": "cluster-manager",
+  "version": "1.0.0",
+  "description": "Library to fill the gap between the SDK and the CLI/Console for AWS ECS",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YashdalfTheGray/cluster-manager.git"
+  },
+  "keywords": [
+    "aws",
+    "ecs"
+  ],
+  "author": "Yash Kulshrestha",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/YashdalfTheGray/cluster-manager/issues"
+  },
+  "homepage": "https://github.com/YashdalfTheGray/cluster-manager#readme",
+  "devDependencies": {
+    "ava": "~0.25.0",
+    "typescript": "~2.8.3"
+  },
+  "dependencies": {
+    "aws-sdk": "~2.226.1"
+  }
+}

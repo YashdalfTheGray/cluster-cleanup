@@ -9,15 +9,25 @@ export class ECSClusterManager {
     }
 
     public async deleteClusterAndResources(clusterName: string): Promise<EventEmitter> {
-        const servicesResponse = await this.ecs.listServices({
-            cluster: clusterName,
-            launchType: 'EC2'
-        }).promise();
+        await this.getAllServicesFor(clusterName);
 
         return new EventEmitter();
     }
 
     private async getAllServicesFor(clusterName: string): Promise<ECS.Types.Services> {
-        return [];
+        try {
+            const ec2ServicesResponse = await this.ecs.listServices({
+                cluster: clusterName,
+                launchType: 'EC2'
+            }).promise();
+
+            console.log(ec2ServicesResponse);
+
+            return ['some-services'] as ECS.Types.Services;
+        }
+        catch(e) {
+            console.log(e);
+            return [];
+        }
     }
 }

@@ -7,14 +7,22 @@ class ECSClusterManager {
         this.ecs = new ECS(config);
     }
     async deleteClusterAndResources(clusterName) {
-        const servicesResponse = await this.ecs.listServices({
-            cluster: clusterName,
-            launchType: 'EC2'
-        }).promise();
+        await this.getAllServicesFor(clusterName);
         return new events_1.EventEmitter();
     }
     async getAllServicesFor(clusterName) {
-        return [];
+        try {
+            const ec2ServicesResponse = await this.ecs.listServices({
+                cluster: clusterName,
+                launchType: 'EC2'
+            }).promise();
+            console.log(ec2ServicesResponse);
+            return ['some-services'];
+        }
+        catch (e) {
+            console.log(e);
+            return [];
+        }
     }
 }
 exports.ECSClusterManager = ECSClusterManager;

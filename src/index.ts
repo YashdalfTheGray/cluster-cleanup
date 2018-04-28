@@ -1,11 +1,21 @@
 import * as ECS from 'aws-sdk/clients/ecs';
 import { EventEmitter } from 'events';
 
+export interface ECSClusterManagerConfig extends ECS.Types.ClientConfiguration {
+    enableFargate?: boolean;
+}
+
 export class ECSClusterManager {
+	launchTypes: ECS.Types.LaunchType[];
     private ecs: ECS;
 
-    public constructor(config?: ECS.Types.ClientConfiguration) {
+    public constructor(config?: ECSClusterManagerConfig) {
         this.ecs = new ECS(config);
+        this.launchTypes = ['EC2'];
+
+        if (config.enableFargate) {
+            this.launchTypes.push('FARGATE');
+        }
     }
 
     public async deleteClusterAndResources(clusterName: string): Promise<EventEmitter> {
@@ -16,12 +26,11 @@ export class ECSClusterManager {
 
     private async getAllServicesFor(clusterName: string): Promise<ECS.Types.Services> {
         try {
-            const ec2ServicesResponse = await this.ecs.listServices({
-                cluster: clusterName,
-                launchType: 'EC2'
-            }).promise();
+            const listServiceResponses = await Promise.all(this.launchTypes.map(
+                l => this.ecs.listServices({ cluster: clusterName, launchType: l }).promise()
+            ));
 
-            console.log(ec2ServicesResponse);
+            console.log(listServiceResponses);
 
             return ['some-services'] as ECS.Types.Services;
         }

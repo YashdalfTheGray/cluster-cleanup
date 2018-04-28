@@ -5,19 +5,21 @@ const events_1 = require("events");
 class ECSClusterManager {
     constructor(config) {
         this.ecs = new ECS(config);
+        this.launchTypes = ['EC2'];
+        if (config.enableFargate) {
+            this.launchTypes.push('FARGATE');
+        }
     }
     async deleteClusterAndResources(clusterName) {
-        await this.getAllServicesFor(clusterName);
+        console.log(await this.getAllServicesFor(clusterName));
         return new events_1.EventEmitter();
     }
     async getAllServicesFor(clusterName) {
         try {
-            const ec2ServicesResponse = await this.ecs.listServices({
-                cluster: clusterName,
-                launchType: 'EC2'
-            }).promise();
-            console.log(ec2ServicesResponse);
-            return ['some-services'];
+            const listServiceResponses = await Promise.all(this.launchTypes.map(l => this.ecs.listServices({ cluster: clusterName, launchType: l }).promise()));
+            return listServiceResponses.reduce((acc, r) => {
+                return acc.concat(r.serviceArns);
+            }, []);
         }
         catch (e) {
             console.log(e);

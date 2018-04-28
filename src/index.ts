@@ -19,20 +19,20 @@ export class ECSClusterManager {
     }
 
     public async deleteClusterAndResources(clusterName: string): Promise<EventEmitter> {
-        await this.getAllServicesFor(clusterName);
+        console.log(await this.getAllServicesFor(clusterName));
 
         return new EventEmitter();
     }
 
-    private async getAllServicesFor(clusterName: string): Promise<ECS.Types.Services> {
+    private async getAllServicesFor(clusterName: string): Promise<string[]> {
         try {
             const listServiceResponses = await Promise.all(this.launchTypes.map(
                 l => this.ecs.listServices({ cluster: clusterName, launchType: l }).promise()
             ));
 
-            console.log(listServiceResponses);
-
-            return ['some-services'] as ECS.Types.Services;
+            return listServiceResponses.reduce((acc, r) => {
+                return acc.concat(r.serviceArns);
+            }, []);
         }
         catch(e) {
             console.log(e);

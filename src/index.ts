@@ -19,6 +19,17 @@ export class ECSClusterManager {
     }
 
     public async deleteClusterAndResources(clusterName: string): Promise<EventEmitter> {
+        // 1. find CloudFormation stack
+        // 2. find all services
+        // 3. batch scale all services down to 0
+        // 4. find all container instances
+        // 5. deregister all container instances
+        // 6. find all services, again
+        // 7. delete all services
+        // 8. delete CloudFormation stack
+        // 9. poll CloudFormation until stack deleted
+        // 10. delete cluster
+
         const foundServices = await this.getAllServicesFor(clusterName);
 
         console.log(await this.scaleServicesToZero(clusterName, foundServices));

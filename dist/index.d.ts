@@ -10,4 +10,5 @@ export declare class ECSClusterManager {
     constructor(config?: ECSClusterManagerConfig);
     deleteClusterAndResources(clusterName: string): Promise<EventEmitter>;
     private getAllServicesFor(clusterName);
+    private scaleServicesToZero(clusterName, serviceArns);
 }

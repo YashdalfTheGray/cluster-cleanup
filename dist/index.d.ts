@@ -1,14 +1,16 @@
 /// <reference types="node" />
 import * as ECS from 'aws-sdk/clients/ecs';
 import { EventEmitter } from 'events';
-export interface ECSClusterManagerConfig extends ECS.Types.ClientConfiguration {
+export interface ECSClusterManagerConfig extends ECS.ClientConfiguration {
     enableFargate?: boolean;
 }
 export declare class ECSClusterManager {
-    launchTypes: ECS.Types.LaunchType[];
+    private launchTypes;
     private ecs;
     constructor(config?: ECSClusterManagerConfig);
-    deleteClusterAndResources(clusterName: string): Promise<EventEmitter>;
-    private getAllServicesFor(clusterName);
-    private scaleServicesToZero(clusterName, serviceArns);
+    deleteClusterAndResources(cluster: string): Promise<EventEmitter>;
+    private getAllServicesFor(cluster);
+    private scaleServicesToZero(cluster, serviceArns);
+    private getAllInstancesFor(cluster);
+    private deregisterContainerInstances(cluster, instances);
 }

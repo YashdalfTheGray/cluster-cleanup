@@ -79,5 +79,17 @@ class ECSClusterManager {
             return [];
         }
     }
+    async deleteAllServices(cluster, services) {
+        try {
+            const deleteServicesResponses = await Promise.all(services.map(service => this.ecs.deleteService({ cluster, service }).promise()));
+            return deleteServicesResponses.reduce((acc, r) => {
+                return acc.concat(r.service);
+            }, []);
+        }
+        catch (e) {
+            console.log(e);
+            return [];
+        }
+    }
 }
 exports.ECSClusterManager = ECSClusterManager;

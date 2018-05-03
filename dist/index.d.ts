@@ -13,4 +13,5 @@ export declare class ECSClusterManager {
     private scaleServicesToZero(cluster, serviceArns);
     private getAllInstancesFor(cluster);
     private deregisterContainerInstances(cluster, instances);
+    private deleteAllServices(cluster, services);
 }

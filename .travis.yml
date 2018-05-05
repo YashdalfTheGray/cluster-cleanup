@@ -1,0 +1,18 @@
+language: node_js
+
+node_js:
+    - "node"
+    - "10"
+    - "8"
+    - "6"
+
+install:
+    - npm install
+
+script:
+    - npm run clean
+    - npm start
+
+cache:
+    directories:
+        - "node_modules"

@@ -6,6 +6,7 @@ export interface ECSClusterManagerConfig extends ECS.ClientConfiguration {
 export declare class ECSClusterManager {
     private launchTypes;
     private ecs;
+    private cloudFormation;
     constructor(config?: ECSClusterManagerConfig);
     deleteClusterAndResources(cluster: string): Promise<ECSClusterManagerEvents>;
     private getAllServicesFor(cluster);

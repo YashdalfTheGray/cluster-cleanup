@@ -1,4 +1,5 @@
 import * as ECS from 'aws-sdk/clients/ecs';
+import * as CloudFormation from 'aws-sdk/clients/cloudformation';
 
 import { ECSClusterManagerEvents } from '.';
 
@@ -9,9 +10,11 @@ export interface ECSClusterManagerConfig extends ECS.ClientConfiguration {
 export class ECSClusterManager {
 	private launchTypes: ECS.LaunchType[];
     private ecs: ECS;
+    private cloudFormation: CloudFormation;
 
     public constructor(config?: ECSClusterManagerConfig) {
         this.ecs = new ECS(config);
+        this.cloudFormation = new CloudFormation();
         this.launchTypes = ['EC2'];
 
         if (config.enableFargate) {

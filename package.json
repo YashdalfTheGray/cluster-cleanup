@@ -6,7 +6,8 @@
   "scripts": {
     "test": "ava",
     "build": "tsc",
-    "start": "npm run build"
+    "start": "npm run build",
+    "clean": "npx rimraf dist/*.js dist/*.ts"
   },
   "repository": {
     "type": "git",

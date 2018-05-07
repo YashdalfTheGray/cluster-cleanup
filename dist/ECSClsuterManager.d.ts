@@ -1,6 +1,6 @@
-import * as ECS from 'aws-sdk/clients/ecs';
+import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
 import { ECSClusterManagerEvents } from '.';
-export interface ECSClusterManagerConfig extends ECS.ClientConfiguration {
+export interface ECSClusterManagerConfig extends ServiceConfigurationOptions {
     enableFargate?: boolean;
 }
 export declare class ECSClusterManager {

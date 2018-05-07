@@ -6,7 +6,7 @@ const _1 = require(".");
 class ECSClusterManager {
     constructor(config) {
         this.ecs = new ECS(config);
-        this.cloudFormation = new CloudFormation();
+        this.cloudFormation = new CloudFormation(config);
         this.launchTypes = ['EC2'];
         if (config.enableFargate) {
             this.launchTypes.push('FARGATE');

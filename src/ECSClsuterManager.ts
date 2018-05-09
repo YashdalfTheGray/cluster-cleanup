@@ -2,7 +2,7 @@ import * as ECS from 'aws-sdk/clients/ecs';
 import * as CloudFormation from 'aws-sdk/clients/cloudformation';
 import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
 
-import { ECSClusterManagerEvents } from '.';
+import { ECSClusterManagerEventEmitter, ClusterManagerEvents } from '.';
 
 export interface ECSClusterManagerConfig extends ServiceConfigurationOptions{
     enableFargate?: boolean;
@@ -23,7 +23,7 @@ export class ECSClusterManager {
         }
     }
 
-    public async deleteClusterAndResources(cluster: string): Promise<ECSClusterManagerEvents> {
+    public async deleteClusterAndResources(cluster: string): Promise<ECSClusterManagerEventEmitter> {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -35,9 +35,14 @@ export class ECSClusterManager {
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
 
+        const events = new ECSClusterManagerEventEmitter();
+
         const foundServices = await this.getAllServicesFor(cluster);
+        events.emit(ClusterManagerEvents.servicesFound, foundServices);
+
         if (foundServices.length > 0) {
-            await this.scaleServicesToZero(cluster, foundServices);
+            const scaledServices = await this.scaleServicesToZero(cluster, foundServices);
+            events.emit(ClusterManagerEvents.servicesScaledDown, scaledServices);
         }
 
         const foundInstances = await this.getAllInstancesFor(cluster);
@@ -45,7 +50,7 @@ export class ECSClusterManager {
             await this.deregisterContainerInstances(cluster, foundInstances);
         }
 
-        return new ECSClusterManagerEvents();
+        return events;
     }
 
     private async getAllServicesFor(cluster: string): Promise<string[]> {

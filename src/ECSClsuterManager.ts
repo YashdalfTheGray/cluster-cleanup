@@ -130,4 +130,32 @@ export class ECSClusterManager {
             return [];
         }
     }
+
+    private async describeStack(cluster: string): Promise<CloudFormation.Stack[]> {
+        try {
+            const describeStackResponse = await this.cloudFormation.describeStacks({
+                StackName: cluster
+            }).promise();
+
+            return describeStackResponse.Stacks;
+        }
+        catch (e) {
+            console.log(e);
+            return e;
+        }
+    }
+
+    private async deleteStack(cluster: string): Promise<Object>{
+        try {
+            const deleteStackResponse = await this.cloudFormation.deleteStack({
+                StackName: cluster
+            }).promise();
+
+            return deleteStackResponse;
+        }
+        catch (e) {
+            console.log(e);
+            return e;
+        }
+    }
 }

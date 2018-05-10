@@ -96,5 +96,29 @@ class ECSClusterManager {
             return [];
         }
     }
+    async describeStack(cluster) {
+        try {
+            const describeStackResponse = await this.cloudFormation.describeStacks({
+                StackName: cluster
+            }).promise();
+            return describeStackResponse.Stacks;
+        }
+        catch (e) {
+            console.log(e);
+            return e;
+        }
+    }
+    async deleteStack(cluster) {
+        try {
+            const deleteStackResponse = await this.cloudFormation.deleteStack({
+                StackName: cluster
+            }).promise();
+            return deleteStackResponse;
+        }
+        catch (e) {
+            console.log(e);
+            return e;
+        }
+    }
 }
 exports.ECSClusterManager = ECSClusterManager;

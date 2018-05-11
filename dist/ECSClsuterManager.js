@@ -24,6 +24,8 @@ class ECSClusterManager {
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
         const events = new _1.ECSClusterManagerEventEmitter();
+        const stack = await this.describeStack(cluster);
+        console.log(stack);
         const foundServices = await this.getAllServicesFor(cluster);
         events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
         if (foundServices.length > 0) {
@@ -44,7 +46,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e);
+            console.log(e.message);
             return [];
         }
     }
@@ -56,7 +58,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e);
+            console.log(e.message);
             return [];
         }
     }
@@ -68,7 +70,7 @@ class ECSClusterManager {
             return listInstanceResponse.containerInstanceArns;
         }
         catch (e) {
-            console.log(e);
+            console.log(e.message);
             return [];
         }
     }
@@ -80,7 +82,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e);
+            console.log(e.message);
             return [];
         }
     }
@@ -92,31 +94,31 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e);
+            console.log(e.message);
             return [];
         }
     }
     async describeStack(cluster) {
         try {
             const describeStackResponse = await this.cloudFormation.describeStacks({
-                StackName: cluster
+                StackName: `EC2ContainerService-${cluster}`
             }).promise();
-            return describeStackResponse.Stacks;
+            return describeStackResponse.Stacks[0];
         }
         catch (e) {
-            console.log(e);
-            return e;
+            console.log(e.message);
+            return null;
         }
     }
     async deleteStack(cluster) {
         try {
             const deleteStackResponse = await this.cloudFormation.deleteStack({
-                StackName: cluster
+                StackName: `EC2ContainerService-${cluster}`
             }).promise();
             return deleteStackResponse;
         }
         catch (e) {
-            console.log(e);
+            console.log(e.message);
             return e;
         }
     }

@@ -23,7 +23,7 @@ export class ECSClusterManagerEventEmitter {
         this.events = new EventEmitter();
     }
 
-    public emit(event: string, ...data): boolean {
+    public emit(event: string, ...data: any[]): boolean {
         return this.events.emit(event, ...data);
     }
 

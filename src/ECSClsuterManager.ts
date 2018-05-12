@@ -38,7 +38,9 @@ export class ECSClusterManager {
         const events = new ECSClusterManagerEventEmitter();
 
         const stack = await this.describeStack(cluster);
-        console.log(stack);
+        if (stack) {
+            events.emit(ClusterManagerEvents.stackFound, stack);
+        }
 
         const foundServices = await this.getAllServicesFor(cluster);
         events.emit(ClusterManagerEvents.servicesFound, foundServices);

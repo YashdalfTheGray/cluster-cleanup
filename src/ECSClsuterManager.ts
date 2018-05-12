@@ -23,7 +23,15 @@ export class ECSClusterManager {
         }
     }
 
-    public async deleteClusterAndResources(cluster: string): Promise<ECSClusterManagerEventEmitter> {
+    public deleteClusterAndResources(cluster: string): ECSClusterManagerEventEmitter {
+        const events = new ECSClusterManagerEventEmitter();
+
+        setTimeout(this.deleteHelper(cluster, events));
+
+        return events;
+    }
+
+    private async deleteHelper(cluster: string, events: ECSClusterManagerEventEmitter) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -34,8 +42,6 @@ export class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
-
-        const events = new ECSClusterManagerEventEmitter();
 
         const stack = await this.describeStack(cluster);
         if (stack) {
@@ -54,8 +60,20 @@ export class ECSClusterManager {
         if (foundInstances.length > 0) {
             await this.deregisterContainerInstances(cluster, foundInstances);
         }
+    }
 
-        return events;
+    private async describeStack(cluster: string): Promise<CloudFormation.Stack> {
+        try {
+            const describeStackResponse = await this.cloudFormation.describeStacks({
+                StackName: `EC2ContainerService-${cluster}`
+            }).promise();
+
+            return describeStackResponse.Stacks[0];
+        }
+        catch (e) {
+            console.log(e.message);
+            return null;
+        }
     }
 
     private async getAllServicesFor(cluster: string): Promise<string[]> {
@@ -133,20 +151,6 @@ export class ECSClusterManager {
         catch (e) {
             console.log(e.message);
             return [];
-        }
-    }
-
-    private async describeStack(cluster: string): Promise<CloudFormation.Stack> {
-        try {
-            const describeStackResponse = await this.cloudFormation.describeStacks({
-                StackName: `EC2ContainerService-${cluster}`
-            }).promise();
-
-            return describeStackResponse.Stacks[0];
-        }
-        catch (e) {
-            console.log(e.message);
-            return null;
         }
     }
 

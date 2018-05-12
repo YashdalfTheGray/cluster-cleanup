@@ -8,12 +8,13 @@ export declare class ECSClusterManager {
     private ecs;
     private cloudFormation;
     constructor(config?: ECSClusterManagerConfig);
-    deleteClusterAndResources(cluster: string): Promise<ECSClusterManagerEventEmitter>;
+    deleteClusterAndResources(cluster: string): ECSClusterManagerEventEmitter;
+    private deleteHelper(cluster, events);
+    private describeStack(cluster);
     private getAllServicesFor(cluster);
     private scaleServicesToZero(cluster, serviceArns);
     private getAllInstancesFor(cluster);
     private deregisterContainerInstances(cluster, instances);
     private deleteAllServices(cluster, services);
-    private describeStack(cluster);
     private deleteStack(cluster);
 }

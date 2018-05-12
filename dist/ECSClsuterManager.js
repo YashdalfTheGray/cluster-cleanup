@@ -12,7 +12,12 @@ class ECSClusterManager {
             this.launchTypes.push('FARGATE');
         }
     }
-    async deleteClusterAndResources(cluster) {
+    deleteClusterAndResources(cluster) {
+        const events = new _1.ECSClusterManagerEventEmitter();
+        setTimeout(this.deleteHelper(cluster, events));
+        return events;
+    }
+    async deleteHelper(cluster, events) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -23,7 +28,6 @@ class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
-        const events = new _1.ECSClusterManagerEventEmitter();
         const stack = await this.describeStack(cluster);
         if (stack) {
             events.emit(_1.ClusterManagerEvents.stackFound, stack);
@@ -38,7 +42,18 @@ class ECSClusterManager {
         if (foundInstances.length > 0) {
             await this.deregisterContainerInstances(cluster, foundInstances);
         }
-        return events;
+    }
+    async describeStack(cluster) {
+        try {
+            const describeStackResponse = await this.cloudFormation.describeStacks({
+                StackName: `EC2ContainerService-${cluster}`
+            }).promise();
+            return describeStackResponse.Stacks[0];
+        }
+        catch (e) {
+            console.log(e.message);
+            return null;
+        }
     }
     async getAllServicesFor(cluster) {
         try {
@@ -98,18 +113,6 @@ class ECSClusterManager {
         catch (e) {
             console.log(e.message);
             return [];
-        }
-    }
-    async describeStack(cluster) {
-        try {
-            const describeStackResponse = await this.cloudFormation.describeStacks({
-                StackName: `EC2ContainerService-${cluster}`
-            }).promise();
-            return describeStackResponse.Stacks[0];
-        }
-        catch (e) {
-            console.log(e.message);
-            return null;
         }
     }
     async deleteStack(cluster) {

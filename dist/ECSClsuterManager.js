@@ -25,7 +25,9 @@ class ECSClusterManager {
         // 10. delete cluster
         const events = new _1.ECSClusterManagerEventEmitter();
         const stack = await this.describeStack(cluster);
-        console.log(stack);
+        if (stack) {
+            events.emit(_1.ClusterManagerEvents.stackFound, stack);
+        }
         const foundServices = await this.getAllServicesFor(cluster);
         events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
         if (foundServices.length > 0) {

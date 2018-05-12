@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 var ClusterManagerEvents;
 (function (ClusterManagerEvents) {
+    ClusterManagerEvents["stackFound"] = "ECSClusterManager.stackFound";
     ClusterManagerEvents["servicesFound"] = "ECSClusterManager.servicesFound";
     ClusterManagerEvents["servicesScaledDown"] = "ECSClusterManager.servicesScaledDown";
     ClusterManagerEvents["servicesDeleted"] = "ECSClusterManager.servicesDeleted";
@@ -15,18 +16,24 @@ class ECSClusterManagerEventEmitter {
     constructor() {
         this.events = new events_1.EventEmitter();
     }
-    emit(event, data) {
-        return this.events.emit(event, data);
+    emit(event, ...data) {
+        return this.events.emit(event, ...data);
     }
     removeAllListeners(event) {
         this.events.removeAllListeners(event);
         return this;
     }
+    onStackFound(l) {
+        this.events.addListener(ClusterManagerEvents.stackFound, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.stackFound, l); };
+    }
     onServicesFound(l) {
-        return this.events.addListener(ClusterManagerEvents.servicesFound, l);
+        this.events.addListener(ClusterManagerEvents.servicesFound, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.servicesFound, l); };
     }
     onServicesScaledDown(l) {
-        return this.events.addListener(ClusterManagerEvents.servicesScaledDown, l);
+        this.events.addListener(ClusterManagerEvents.servicesScaledDown, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.servicesScaledDown, l); };
     }
 }
 exports.ECSClusterManagerEventEmitter = ECSClusterManagerEventEmitter;

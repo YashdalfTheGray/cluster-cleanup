@@ -26,7 +26,7 @@ export class ECSClusterManager {
     public deleteClusterAndResources(cluster: string): ECSClusterManagerEventEmitter {
         const events = new ECSClusterManagerEventEmitter();
 
-        setTimeout(this.deleteHelper, 1, cluster, events);
+        setImmediate(this.deleteHelper, cluster, events);
 
         return events;
     }

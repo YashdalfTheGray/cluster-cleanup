@@ -3,13 +3,17 @@ import { ECSClusterManagerEventEmitter } from '.';
 export interface ECSClusterManagerConfig extends ServiceConfigurationOptions {
     enableFargate?: boolean;
 }
+export interface DeleteOptions {
+    verbose?: boolean;
+    block?: boolean;
+}
 export declare class ECSClusterManager {
     private launchTypes;
     private ecs;
     private cloudFormation;
     constructor(config?: ECSClusterManagerConfig);
-    deleteClusterAndResources(cluster: string): ECSClusterManagerEventEmitter;
-    private deleteHelper(cluster, events);
+    deleteClusterAndResources(cluster: string, options?: DeleteOptions): ECSClusterManagerEventEmitter;
+    private deleteHelper(cluster, events, options);
     private describeStack(cluster);
     private getAllServicesFor(cluster);
     private scaleServicesToZero(cluster, serviceArns);

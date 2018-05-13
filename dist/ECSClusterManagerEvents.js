@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = require("events");
 var ClusterManagerEvents;
 (function (ClusterManagerEvents) {
+    ClusterManagerEvents["start"] = "ECSClusterManager.start";
+    ClusterManagerEvents["done"] = "ECSClusterManager.done";
     ClusterManagerEvents["stackFound"] = "ECSClusterManager.stackFound";
     ClusterManagerEvents["servicesFound"] = "ECSClusterManager.servicesFound";
     ClusterManagerEvents["servicesScaledDown"] = "ECSClusterManager.servicesScaledDown";
@@ -11,12 +13,17 @@ var ClusterManagerEvents;
     ClusterManagerEvents["instancesDeregistered"] = "ECSCluserManager.instancesDeregistered";
     ClusterManagerEvents["stackDeletionStarted"] = "ECSClusterManager.stackDeletionStarted";
     ClusterManagerEvents["resourceDeleted"] = "ECSClusterManager.resourceDeleted";
+    ClusterManagerEvents["clusterDeleted"] = "ECSClusterManager.clusterDeleted";
 })(ClusterManagerEvents = exports.ClusterManagerEvents || (exports.ClusterManagerEvents = {}));
 class ECSClusterManagerEventEmitter {
-    constructor() {
+    constructor(verbose = false) {
         this.events = new events_1.EventEmitter();
+        this.verbose = verbose;
     }
     emit(event, ...data) {
+        if (this.verbose) {
+            console.log(`Emitting event ${event}`);
+        }
         return this.events.emit(event, ...data);
     }
     removeAllListeners(event) {

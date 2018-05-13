@@ -12,12 +12,12 @@ class ECSClusterManager {
             this.launchTypes.push('FARGATE');
         }
     }
-    deleteClusterAndResources(cluster) {
-        const events = new _1.ECSClusterManagerEventEmitter();
-        setImmediate(this.deleteHelper, cluster, events);
+    deleteClusterAndResources(cluster, options = {}) {
+        const events = new _1.ECSClusterManagerEventEmitter(options.verbose);
+        setImmediate(this.deleteHelper, cluster, events, options);
         return events;
     }
-    async deleteHelper(cluster, events) {
+    async deleteHelper(cluster, events, options) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0

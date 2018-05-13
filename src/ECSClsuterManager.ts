@@ -8,6 +8,11 @@ export interface ECSClusterManagerConfig extends ServiceConfigurationOptions{
     enableFargate?: boolean;
 }
 
+export interface DeleteOptions {
+    verbose?: boolean;
+    block?: boolean;
+}
+
 export class ECSClusterManager {
 	private launchTypes: ECS.LaunchType[];
     private ecs: ECS;
@@ -23,15 +28,15 @@ export class ECSClusterManager {
         }
     }
 
-    public deleteClusterAndResources(cluster: string): ECSClusterManagerEventEmitter {
-        const events = new ECSClusterManagerEventEmitter();
+    public deleteClusterAndResources(cluster: string, options: DeleteOptions = {}): ECSClusterManagerEventEmitter {
+        const events = new ECSClusterManagerEventEmitter(options.verbose);
 
-        setImmediate(this.deleteHelper, cluster, events);
+        setImmediate(this.deleteHelper, cluster, events, options);
 
         return events;
     }
 
-    private async deleteHelper(cluster: string, events: ECSClusterManagerEventEmitter) {
+    private async deleteHelper(cluster: string, events: ECSClusterManagerEventEmitter, options: DeleteOptions) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0

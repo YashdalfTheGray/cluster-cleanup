@@ -6,6 +6,8 @@ export type Listener<T> = (data: T) => void;
 export type RemoveListenerFunction = () => void;
 
 export enum ClusterManagerEvents {
+    start = 'ECSClusterManager.start',
+    done = 'ECSClusterManager.done',
     stackFound = 'ECSClusterManager.stackFound',
     servicesFound = 'ECSClusterManager.servicesFound',
     servicesScaledDown = 'ECSClusterManager.servicesScaledDown',
@@ -13,17 +15,23 @@ export enum ClusterManagerEvents {
     instancesFound = 'ECSClusterManager.instancesFound',
     instancesDeregistered = 'ECSCluserManager.instancesDeregistered',
     stackDeletionStarted = 'ECSClusterManager.stackDeletionStarted',
-    resourceDeleted = 'ECSClusterManager.resourceDeleted'
+    resourceDeleted = 'ECSClusterManager.resourceDeleted',
+    clusterDeleted = 'ECSClusterManager.clusterDeleted'
 }
 
 export class ECSClusterManagerEventEmitter {
     events: EventEmitter;
+    verbose: boolean;
 
-    public constructor() {
+    public constructor(verbose: boolean = false) {
         this.events = new EventEmitter();
+        this.verbose = verbose;
     }
 
     public emit(event: string, ...data: any[]): boolean {
+        if (this.verbose) {
+            console.log(`Emitting event ${event}`);
+        }
         return this.events.emit(event, ...data);
     }
 

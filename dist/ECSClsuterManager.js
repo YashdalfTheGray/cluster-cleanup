@@ -14,7 +14,7 @@ class ECSClusterManager {
     }
     deleteClusterAndResources(cluster, options = {}) {
         const events = new _1.ECSClusterManagerEventEmitter(options.verbose);
-        setImmediate(this.deleteHelper, cluster, events, options);
+        setImmediate(this.deleteHelper.bind(this), cluster, events, options);
         return events;
     }
     async deleteHelper(cluster, events, options) {
@@ -35,14 +35,14 @@ class ECSClusterManager {
             events.emit(_1.ClusterManagerEvents.stackFound, stack);
         }
         const foundServices = await this.getAllServicesFor(cluster);
-        events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
         if (foundServices.length > 0) {
+            events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
             services = await this.scaleServicesToZero(cluster, foundServices);
             events.emit(_1.ClusterManagerEvents.servicesScaledDown, services);
         }
         const foundInstances = await this.getAllInstancesFor(cluster);
-        events.emit(_1.ClusterManagerEvents.instancesFound, foundInstances);
         if (foundInstances.length > 0) {
+            events.emit(_1.ClusterManagerEvents.instancesFound, foundInstances);
             instances = await this.deregisterContainerInstances(cluster, foundInstances);
             events.emit(_1.ClusterManagerEvents.instancesDeregistered, instances);
         }

@@ -28,6 +28,8 @@ class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
+        let services;
+        let instances;
         const stack = await this.describeStack(cluster);
         if (stack) {
             events.emit(_1.ClusterManagerEvents.stackFound, stack);
@@ -35,12 +37,18 @@ class ECSClusterManager {
         const foundServices = await this.getAllServicesFor(cluster);
         events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
         if (foundServices.length > 0) {
-            const scaledServices = await this.scaleServicesToZero(cluster, foundServices);
-            events.emit(_1.ClusterManagerEvents.servicesScaledDown, scaledServices);
+            services = await this.scaleServicesToZero(cluster, foundServices);
+            events.emit(_1.ClusterManagerEvents.servicesScaledDown, services);
         }
         const foundInstances = await this.getAllInstancesFor(cluster);
+        events.emit(_1.ClusterManagerEvents.instancesFound, foundInstances);
         if (foundInstances.length > 0) {
-            await this.deregisterContainerInstances(cluster, foundInstances);
+            instances = await this.deregisterContainerInstances(cluster, foundInstances);
+            events.emit(_1.ClusterManagerEvents.instancesDeregistered, instances);
+        }
+        if (foundServices.length > 0) {
+            await this.deleteAllServices(cluster, services.map(s => s.serviceName));
+            events.emit(_1.ClusterManagerEvents.servicesDeleted, services);
         }
     }
     async describeStack(cluster) {

@@ -54,4 +54,14 @@ export class ECSClusterManagerEventEmitter {
         this.events.addListener(ClusterManagerEvents.servicesScaledDown, l);
         return () => { this.events.removeListener(ClusterManagerEvents.servicesScaledDown, l); };
     }
+
+    public onInstancesFound(l: Listener<string[]>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.instancesFound, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.instancesFound, l); };
+    }
+
+    public onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.instancesDeregistered, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.instancesDeregistered, l); };
+    }
 }

@@ -73,7 +73,10 @@ export class ECSClusterManager {
         if (foundServices.length > 0) {
             await this.deleteAllServices(cluster, services.map(s => s.serviceName));
             events.emit(ClusterManagerEvents.servicesDeleted, services);
-        } 
+        }
+
+        await this.deleteStack(cluster);
+        events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
     }
 
     private async describeStack(cluster: string): Promise<CloudFormation.Stack> {
@@ -168,7 +171,7 @@ export class ECSClusterManager {
         }
     }
 
-    private async deleteStack(cluster: string): Promise<Object>{
+    private async deleteStack(cluster: string): Promise<Object> {
         try {
             const deleteStackResponse = await this.cloudFormation.deleteStack({
                 StackName: `EC2ContainerService-${cluster}`
@@ -180,5 +183,9 @@ export class ECSClusterManager {
             console.log(e.message);
             return e;
         }
+    }
+
+    private pollCloudFormationForChanges(cluster: string): Promise<void> {
+        return Promise.resolve();
     }
 }

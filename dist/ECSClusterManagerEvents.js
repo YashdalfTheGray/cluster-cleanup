@@ -42,5 +42,13 @@ class ECSClusterManagerEventEmitter {
         this.events.addListener(ClusterManagerEvents.servicesScaledDown, l);
         return () => { this.events.removeListener(ClusterManagerEvents.servicesScaledDown, l); };
     }
+    onInstancesFound(l) {
+        this.events.addListener(ClusterManagerEvents.instancesFound, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.instancesFound, l); };
+    }
+    onInstancesDeregistered(l) {
+        this.events.addListener(ClusterManagerEvents.instancesDeregistered, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.instancesDeregistered, l); };
+    }
 }
 exports.ECSClusterManagerEventEmitter = ECSClusterManagerEventEmitter;

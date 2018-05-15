@@ -50,6 +50,8 @@ class ECSClusterManager {
             await this.deleteAllServices(cluster, services.map(s => s.serviceName));
             events.emit(_1.ClusterManagerEvents.servicesDeleted, services);
         }
+        await this.deleteStack(cluster);
+        events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
     }
     async describeStack(cluster) {
         try {
@@ -134,6 +136,9 @@ class ECSClusterManager {
             console.log(e.message);
             return e;
         }
+    }
+    pollCloudFormationForChanges(cluster) {
+        return Promise.resolve();
     }
 }
 exports.ECSClusterManager = ECSClusterManager;

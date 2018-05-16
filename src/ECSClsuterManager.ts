@@ -188,7 +188,20 @@ export class ECSClusterManager {
         }
     }
 
-    private pollCloudFormationForChanges(cluster: string): Promise<void> {
+    private pollCloudFormationForChanges(cluster: string, events: ECSClusterManagerEventEmitter): Promise<void> {
+        const TEN_SECONDS = 10 * 1000;
+        const TEN_MINUTES = 10 * 60 * 1000;
+
+        const pollTimer = setInterval(
+            this.pollCloudFormationForEvents.bind(this),
+            TEN_SECONDS,
+            cluster, events
+        );
+
         return Promise.resolve();
+    }
+
+    private pollCloudFormationForEvents(cluster: string, events: ECSClusterManagerEventEmitter): void {
+
     }
 }

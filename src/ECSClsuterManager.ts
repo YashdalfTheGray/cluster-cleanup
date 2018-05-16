@@ -48,6 +48,7 @@ export class ECSClusterManager {
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
 
+        events.emit(ClusterManagerEvents.start, cluster);
         let services: ECS.Service[];
         let instances: ECS.ContainerInstance[];
 
@@ -77,6 +78,8 @@ export class ECSClusterManager {
 
         await this.deleteStack(cluster);
         events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
+
+        events.emit(ClusterManagerEvents.done, cluster);
     }
 
     private async describeStack(cluster: string): Promise<CloudFormation.Stack> {

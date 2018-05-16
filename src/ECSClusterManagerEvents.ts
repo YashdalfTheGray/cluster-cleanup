@@ -40,6 +40,11 @@ export class ECSClusterManagerEventEmitter {
         return this;
     }
 
+    public onStart(l: Listener<string>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.start, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.start, l); };
+    }
+
     public onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction {
         this.events.addListener(ClusterManagerEvents.stackFound, l);
         return () => { this.events.removeListener(ClusterManagerEvents.stackFound, l); };
@@ -63,5 +68,10 @@ export class ECSClusterManagerEventEmitter {
     public onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction {
         this.events.addListener(ClusterManagerEvents.instancesDeregistered, l);
         return () => { this.events.removeListener(ClusterManagerEvents.instancesDeregistered, l); };
+    }
+
+    public onDone(l: Listener<string>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.done, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.done, l); };
     }
 }

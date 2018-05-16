@@ -23,9 +23,11 @@ export declare class ECSClusterManagerEventEmitter {
     constructor(verbose?: boolean);
     emit(event: string, ...data: any[]): boolean;
     removeAllListeners(event?: string): ECSClusterManagerEventEmitter;
+    onStart(l: Listener<string>): RemoveListenerFunction;
     onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction;
     onServicesFound(l: Listener<string[]>): RemoveListenerFunction;
     onServicesScaledDown(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction;
     onInstancesFound(l: Listener<string[]>): RemoveListenerFunction;
     onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction;
+    onDone(l: Listener<string>): RemoveListenerFunction;
 }

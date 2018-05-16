@@ -21,5 +21,6 @@ export declare class ECSClusterManager {
     private deregisterContainerInstances(cluster, instances);
     private deleteAllServices(cluster, services);
     private deleteStack(cluster);
-    private pollCloudFormationForChanges(cluster);
+    private pollCloudFormationForChanges(cluster, events);
+    private pollCloudFormationForEvents(cluster, events);
 }

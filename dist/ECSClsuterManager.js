@@ -28,6 +28,7 @@ class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
+        events.emit(_1.ClusterManagerEvents.start, cluster);
         let services;
         let instances;
         const stack = await this.describeStack(cluster);
@@ -52,6 +53,7 @@ class ECSClusterManager {
         }
         await this.deleteStack(cluster);
         events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
+        events.emit(_1.ClusterManagerEvents.done, cluster);
     }
     async describeStack(cluster) {
         try {
@@ -137,8 +139,13 @@ class ECSClusterManager {
             return e;
         }
     }
-    pollCloudFormationForChanges(cluster) {
+    pollCloudFormationForChanges(cluster, events) {
+        const TEN_SECONDS = 10 * 1000;
+        const TEN_MINUTES = 10 * 60 * 1000;
+        const pollTimer = setInterval(this.pollCloudFormationForEvents.bind(this), TEN_SECONDS, cluster, events);
         return Promise.resolve();
+    }
+    pollCloudFormationForEvents(cluster, events) {
     }
 }
 exports.ECSClusterManager = ECSClusterManager;

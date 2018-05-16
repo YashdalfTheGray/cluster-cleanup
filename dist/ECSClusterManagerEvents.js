@@ -30,6 +30,10 @@ class ECSClusterManagerEventEmitter {
         this.events.removeAllListeners(event);
         return this;
     }
+    onStart(l) {
+        this.events.addListener(ClusterManagerEvents.start, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.start, l); };
+    }
     onStackFound(l) {
         this.events.addListener(ClusterManagerEvents.stackFound, l);
         return () => { this.events.removeListener(ClusterManagerEvents.stackFound, l); };
@@ -49,6 +53,10 @@ class ECSClusterManagerEventEmitter {
     onInstancesDeregistered(l) {
         this.events.addListener(ClusterManagerEvents.instancesDeregistered, l);
         return () => { this.events.removeListener(ClusterManagerEvents.instancesDeregistered, l); };
+    }
+    onDone(l) {
+        this.events.addListener(ClusterManagerEvents.done, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.done, l); };
     }
 }
 exports.ECSClusterManagerEventEmitter = ECSClusterManagerEventEmitter;

@@ -1,8 +1,11 @@
+import { promisify } from 'util';
 import * as ECS from 'aws-sdk/clients/ecs';
 import * as CloudFormation from 'aws-sdk/clients/cloudformation';
 import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
 
 import { ECSClusterManagerEventEmitter, ClusterManagerEvents } from '.';
+
+const setTimeoutPromise = promisify(setTimeout);
 
 export interface ECSClusterManagerConfig extends ServiceConfigurationOptions{
     enableFargate?: boolean;
@@ -188,20 +191,41 @@ export class ECSClusterManager {
         }
     }
 
+    private async describeStackEvents(cluster: string): Promise<CloudFormation.StackEvent[]> {
+        try {
+            const describeStackEventsResponse = await this.cloudFormation.describeStackEvents({
+                StackName: `EC2ContainerService-${cluster}`
+            }).promise();
+
+            return describeStackEventsResponse.StackEvents;
+        }
+        catch (e) {
+            console.log(e.message);
+            return e;
+        }
+    }
+
     private pollCloudFormationForChanges(cluster: string, events: ECSClusterManagerEventEmitter): Promise<void> {
-        const TEN_SECONDS = 10 * 1000;
         const TEN_MINUTES = 10 * 60 * 1000;
 
-        const pollTimer = setInterval(
-            this.pollCloudFormationForEvents.bind(this),
-            TEN_SECONDS,
-            cluster, events
-        );
+        const pollTimer = this.setupCloudFormationPolling(cluster, events);
 
         return Promise.resolve();
     }
 
-    private pollCloudFormationForEvents(cluster: string, events: ECSClusterManagerEventEmitter): void {
+    private setupCloudFormationPolling(cluster: string, events: ECSClusterManagerEventEmitter): NodeJS.Timer {
+        const TEN_SECONDS = 10 * 1000;
+        const alreadyDeleted = [];
 
+        const pollEvent = async () => {
+            try {
+                const stackEvents = await this.describeStackEvents(cluster);
+            }
+            catch (e) {
+                console.log(e.message);
+            }
+        };
+
+        return setInterval(pollEvent, TEN_SECONDS);
     }
 }

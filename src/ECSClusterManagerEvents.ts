@@ -8,6 +8,7 @@ export type RemoveListenerFunction = () => void;
 export enum ClusterManagerEvents {
     start = 'ECSClusterManager.start',
     done = 'ECSClusterManager.done',
+    error = 'ECSClusterManager.error',
     stackFound = 'ECSClusterManager.stackFound',
     servicesFound = 'ECSClusterManager.servicesFound',
     servicesScaledDown = 'ECSClusterManager.servicesScaledDown',
@@ -73,5 +74,10 @@ export class ECSClusterManagerEventEmitter {
     public onDone(l: Listener<string>): RemoveListenerFunction {
         this.events.addListener(ClusterManagerEvents.done, l);
         return () => { this.events.removeListener(ClusterManagerEvents.done, l); };
+    }
+
+    public onError(l: Listener<Error>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.error, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.error, l); };
     }
 }

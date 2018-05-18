@@ -5,6 +5,7 @@ var ClusterManagerEvents;
 (function (ClusterManagerEvents) {
     ClusterManagerEvents["start"] = "ECSClusterManager.start";
     ClusterManagerEvents["done"] = "ECSClusterManager.done";
+    ClusterManagerEvents["error"] = "ECSClusterManager.error";
     ClusterManagerEvents["stackFound"] = "ECSClusterManager.stackFound";
     ClusterManagerEvents["servicesFound"] = "ECSClusterManager.servicesFound";
     ClusterManagerEvents["servicesScaledDown"] = "ECSClusterManager.servicesScaledDown";
@@ -25,6 +26,12 @@ class ECSClusterManagerEventEmitter {
             console.log(`Emitting event ${event}`);
         }
         return this.events.emit(event, ...data);
+    }
+    get verboseMode() {
+        return this.verbose;
+    }
+    set verboseMode(val) {
+        this.verbose = val;
     }
     removeAllListeners(event) {
         this.events.removeAllListeners(event);
@@ -57,6 +64,10 @@ class ECSClusterManagerEventEmitter {
     onDone(l) {
         this.events.addListener(ClusterManagerEvents.done, l);
         return () => { this.events.removeListener(ClusterManagerEvents.done, l); };
+    }
+    onError(l) {
+        this.events.addListener(ClusterManagerEvents.error, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.error, l); };
     }
 }
 exports.ECSClusterManagerEventEmitter = ECSClusterManagerEventEmitter;

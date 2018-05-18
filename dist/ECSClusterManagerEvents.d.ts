@@ -1,5 +1,3 @@
-/// <reference types="node" />
-import { EventEmitter } from 'events';
 import { Types as ECSTypes } from 'aws-sdk/clients/ecs';
 import { Types as CloudformationTypes } from 'aws-sdk/clients/cloudformation';
 export declare type Listener<T> = (data: T) => void;
@@ -7,6 +5,7 @@ export declare type RemoveListenerFunction = () => void;
 export declare enum ClusterManagerEvents {
     start = "ECSClusterManager.start",
     done = "ECSClusterManager.done",
+    error = "ECSClusterManager.error",
     stackFound = "ECSClusterManager.stackFound",
     servicesFound = "ECSClusterManager.servicesFound",
     servicesScaledDown = "ECSClusterManager.servicesScaledDown",
@@ -18,10 +17,11 @@ export declare enum ClusterManagerEvents {
     clusterDeleted = "ECSClusterManager.clusterDeleted",
 }
 export declare class ECSClusterManagerEventEmitter {
-    events: EventEmitter;
+    private events;
     verbose: boolean;
     constructor(verbose?: boolean);
     emit(event: string, ...data: any[]): boolean;
+    verboseMode: boolean;
     removeAllListeners(event?: string): ECSClusterManagerEventEmitter;
     onStart(l: Listener<string>): RemoveListenerFunction;
     onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction;
@@ -30,4 +30,5 @@ export declare class ECSClusterManagerEventEmitter {
     onInstancesFound(l: Listener<string[]>): RemoveListenerFunction;
     onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction;
     onDone(l: Listener<string>): RemoveListenerFunction;
+    onError(l: Listener<Error>): RemoveListenerFunction;
 }

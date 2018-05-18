@@ -1,8 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const util_1 = require("util");
 const ECS = require("aws-sdk/clients/ecs");
 const CloudFormation = require("aws-sdk/clients/cloudformation");
 const _1 = require(".");
+const setTimeoutPromise = util_1.promisify(setTimeout);
 class ECSClusterManager {
     constructor(config) {
         this.ecs = new ECS(config);
@@ -139,13 +141,43 @@ class ECSClusterManager {
             return e;
         }
     }
+    async describeStackEvents(cluster) {
+        try {
+            const describeStackEventsResponse = await this.cloudFormation.describeStackEvents({
+                StackName: `EC2ContainerService-${cluster}`
+            }).promise();
+            return describeStackEventsResponse.StackEvents;
+        }
+        catch (e) {
+            console.log(e.message);
+            return e;
+        }
+    }
     pollCloudFormationForChanges(cluster, events) {
-        const TEN_SECONDS = 10 * 1000;
         const TEN_MINUTES = 10 * 60 * 1000;
-        const pollTimer = setInterval(this.pollCloudFormationForEvents.bind(this), TEN_SECONDS, cluster, events);
+        const pollTimer = this.setupCloudFormationPolling(cluster, events);
         return Promise.resolve();
     }
-    pollCloudFormationForEvents(cluster, events) {
+    setupCloudFormationPolling(cluster, events) {
+        const TEN_SECONDS = 10 * 1000;
+        const alreadyDeleted = [];
+        const pollEvent = async () => {
+            try {
+                const stackEvents = await this.describeStackEvents(cluster);
+                stackEvents.forEach(e => {
+                    if (e.ResourceStatus === 'DELETE_COMPLETE') {
+                        if (!alreadyDeleted.includes(e.LogicalResourceId)) {
+                            alreadyDeleted.push(e.LogicalResourceId);
+                            events.emit(_1.ClusterManagerEvents.resourceDeleted, e);
+                        }
+                    }
+                });
+            }
+            catch (e) {
+                console.log(e.message);
+            }
+        };
+        return setInterval(pollEvent, TEN_SECONDS);
     }
 }
 exports.ECSClusterManager = ECSClusterManager;

@@ -21,7 +21,7 @@ export enum ClusterManagerEvents {
 }
 
 export class ECSClusterManagerEventEmitter {
-    events: EventEmitter;
+    private events: EventEmitter;
     verbose: boolean;
 
     public constructor(verbose: boolean = false) {
@@ -34,6 +34,14 @@ export class ECSClusterManagerEventEmitter {
             console.log(`Emitting event ${event}`);
         }
         return this.events.emit(event, ...data);
+    }
+
+    get verboseMode(): boolean {
+        return this.verbose;
+    }
+
+    set verboseMode(val: boolean) {
+        this.verbose = val;
     }
 
     public removeAllListeners(event?: string): ECSClusterManagerEventEmitter {

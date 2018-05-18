@@ -220,6 +220,14 @@ export class ECSClusterManager {
         const pollEvent = async () => {
             try {
                 const stackEvents = await this.describeStackEvents(cluster);
+                stackEvents.forEach(e => {
+                    if (e.ResourceStatus === 'DELETE_COMPLETE') {
+                        if (!alreadyDeleted.includes(e.LogicalResourceId)) {
+                            alreadyDeleted.push(e.LogicalResourceId);
+                            events.emit(ClusterManagerEvents.resourceDeleted, e);
+                        }
+                    }
+                });
             }
             catch (e) {
                 console.log(e.message);

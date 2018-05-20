@@ -20,11 +20,13 @@ export class ECSClusterManager {
 	private launchTypes: ECS.LaunchType[];
     private ecs: ECS;
     private cloudFormation: CloudFormation;
+    private events: ECSClusterManagerEventEmitter;
 
     public constructor(config?: ECSClusterManagerConfig) {
         this.ecs = new ECS(config);
         this.cloudFormation = new CloudFormation(config);
         this.launchTypes = ['EC2'];
+        this.events = new ECSClusterManagerEventEmitter();
 
         if (config.enableFargate) {
             this.launchTypes.push('FARGATE');
@@ -32,14 +34,14 @@ export class ECSClusterManager {
     }
 
     public deleteClusterAndResources(cluster: string, options: DeleteOptions = {}): ECSClusterManagerEventEmitter {
-        const events = new ECSClusterManagerEventEmitter(options.verbose);
+        this.events.verbose = options.verbose;
 
-        setImmediate(this.deleteHelper.bind(this), cluster, events, options);
+        setImmediate(this.deleteHelper.bind(this), cluster, options);
 
-        return events;
+        return this.events;
     }
 
-    private async deleteHelper(cluster: string, events: ECSClusterManagerEventEmitter, options: DeleteOptions) {
+    private async deleteHelper(cluster: string, options: DeleteOptions) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -51,38 +53,38 @@ export class ECSClusterManager {
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
 
-        events.emit(ClusterManagerEvents.start, cluster);
+        this.events.emit(ClusterManagerEvents.start, cluster);
         let services: ECS.Service[];
         let instances: ECS.ContainerInstance[];
 
         const stack = await this.describeStack(cluster);
         if (stack) {
-            events.emit(ClusterManagerEvents.stackFound, stack);
+            this.events.emit(ClusterManagerEvents.stackFound, stack);
         }
 
         const foundServices = await this.getAllServicesFor(cluster);
         if (foundServices.length > 0) {
-            events.emit(ClusterManagerEvents.servicesFound, foundServices);
+            this.events.emit(ClusterManagerEvents.servicesFound, foundServices);
             services = await this.scaleServicesToZero(cluster, foundServices);
-            events.emit(ClusterManagerEvents.servicesScaledDown, services);
+            this.events.emit(ClusterManagerEvents.servicesScaledDown, services);
         }
 
         const foundInstances = await this.getAllInstancesFor(cluster);
         if (foundInstances.length > 0) {
-            events.emit(ClusterManagerEvents.instancesFound, foundInstances);
+            this.events.emit(ClusterManagerEvents.instancesFound, foundInstances);
             instances = await this.deregisterContainerInstances(cluster, foundInstances);
-            events.emit(ClusterManagerEvents.instancesDeregistered, instances);
+            this.events.emit(ClusterManagerEvents.instancesDeregistered, instances);
         }
 
         if (foundServices.length > 0) {
             await this.deleteAllServices(cluster, services.map(s => s.serviceName));
-            events.emit(ClusterManagerEvents.servicesDeleted, services);
+            this.events.emit(ClusterManagerEvents.servicesDeleted, services);
         }
 
         await this.deleteStack(cluster);
-        events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
+        this.events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
 
-        events.emit(ClusterManagerEvents.done, cluster);
+        this.events.emit(ClusterManagerEvents.done, cluster);
     }
 
     private async describeStack(cluster: string): Promise<CloudFormation.Stack> {
@@ -210,7 +212,11 @@ export class ECSClusterManager {
 
         const pollTimer = this.setupCloudFormationPolling(cluster, events);
 
-        return Promise.resolve();
+        const timeoutPromise = setTimeout(() => {
+            clearInterval(pollTimer);
+        }, TEN_MINUTES);
+
+        return Promise.race([]);
     }
 
     private setupCloudFormationPolling(cluster: string, events: ECSClusterManagerEventEmitter): NodeJS.Timer {

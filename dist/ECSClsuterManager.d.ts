@@ -11,9 +11,10 @@ export declare class ECSClusterManager {
     private launchTypes;
     private ecs;
     private cloudFormation;
+    private events;
     constructor(config?: ECSClusterManagerConfig);
     deleteClusterAndResources(cluster: string, options?: DeleteOptions): ECSClusterManagerEventEmitter;
-    private deleteHelper(cluster, events, options);
+    private deleteHelper(cluster, options);
     private describeStack(cluster);
     private getAllServicesFor(cluster);
     private scaleServicesToZero(cluster, serviceArns);

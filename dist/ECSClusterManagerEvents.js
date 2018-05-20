@@ -27,12 +27,6 @@ class ECSClusterManagerEventEmitter {
         }
         return this.events.emit(event, ...data);
     }
-    get verboseMode() {
-        return this.verbose;
-    }
-    set verboseMode(val) {
-        this.verbose = val;
-    }
     removeAllListeners(event) {
         this.events.removeAllListeners(event);
         return this;

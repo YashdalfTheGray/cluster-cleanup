@@ -21,7 +21,6 @@ export declare class ECSClusterManagerEventEmitter {
     verbose: boolean;
     constructor(verbose?: boolean);
     emit(event: string, ...data: any[]): boolean;
-    verboseMode: boolean;
     removeAllListeners(event?: string): ECSClusterManagerEventEmitter;
     onStart(l: Listener<string>): RemoveListenerFunction;
     onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction;

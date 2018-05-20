@@ -10,16 +10,17 @@ class ECSClusterManager {
         this.ecs = new ECS(config);
         this.cloudFormation = new CloudFormation(config);
         this.launchTypes = ['EC2'];
+        this.events = new _1.ECSClusterManagerEventEmitter();
         if (config.enableFargate) {
             this.launchTypes.push('FARGATE');
         }
     }
     deleteClusterAndResources(cluster, options = {}) {
-        const events = new _1.ECSClusterManagerEventEmitter(options.verbose);
-        setImmediate(this.deleteHelper.bind(this), cluster, events, options);
-        return events;
+        this.events.verbose = options.verbose;
+        setImmediate(this.deleteHelper.bind(this), cluster, options);
+        return this.events;
     }
-    async deleteHelper(cluster, events, options) {
+    async deleteHelper(cluster, options) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -30,32 +31,32 @@ class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
-        events.emit(_1.ClusterManagerEvents.start, cluster);
+        this.events.emit(_1.ClusterManagerEvents.start, cluster);
         let services;
         let instances;
         const stack = await this.describeStack(cluster);
         if (stack) {
-            events.emit(_1.ClusterManagerEvents.stackFound, stack);
+            this.events.emit(_1.ClusterManagerEvents.stackFound, stack);
         }
         const foundServices = await this.getAllServicesFor(cluster);
         if (foundServices.length > 0) {
-            events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
+            this.events.emit(_1.ClusterManagerEvents.servicesFound, foundServices);
             services = await this.scaleServicesToZero(cluster, foundServices);
-            events.emit(_1.ClusterManagerEvents.servicesScaledDown, services);
+            this.events.emit(_1.ClusterManagerEvents.servicesScaledDown, services);
         }
         const foundInstances = await this.getAllInstancesFor(cluster);
         if (foundInstances.length > 0) {
-            events.emit(_1.ClusterManagerEvents.instancesFound, foundInstances);
+            this.events.emit(_1.ClusterManagerEvents.instancesFound, foundInstances);
             instances = await this.deregisterContainerInstances(cluster, foundInstances);
-            events.emit(_1.ClusterManagerEvents.instancesDeregistered, instances);
+            this.events.emit(_1.ClusterManagerEvents.instancesDeregistered, instances);
         }
         if (foundServices.length > 0) {
             await this.deleteAllServices(cluster, services.map(s => s.serviceName));
-            events.emit(_1.ClusterManagerEvents.servicesDeleted, services);
+            this.events.emit(_1.ClusterManagerEvents.servicesDeleted, services);
         }
         await this.deleteStack(cluster);
-        events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
-        events.emit(_1.ClusterManagerEvents.done, cluster);
+        this.events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
+        this.events.emit(_1.ClusterManagerEvents.done, cluster);
     }
     async describeStack(cluster) {
         try {
@@ -156,7 +157,10 @@ class ECSClusterManager {
     pollCloudFormationForChanges(cluster, events) {
         const TEN_MINUTES = 10 * 60 * 1000;
         const pollTimer = this.setupCloudFormationPolling(cluster, events);
-        return Promise.resolve();
+        const timeoutPromise = setTimeout(() => {
+            clearInterval(pollTimer);
+        }, TEN_MINUTES);
+        return Promise.race([]);
     }
     setupCloudFormationPolling(cluster, events) {
         const TEN_SECONDS = 10 * 1000;

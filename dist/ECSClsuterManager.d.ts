@@ -5,7 +5,6 @@ export interface ECSClusterManagerConfig extends ServiceConfigurationOptions {
 }
 export interface DeleteOptions {
     verbose?: boolean;
-    block?: boolean;
 }
 export declare class ECSClusterManager {
     private launchTypes;
@@ -23,6 +22,6 @@ export declare class ECSClusterManager {
     private deleteAllServices(cluster, services);
     private deleteStack(cluster);
     private describeStackEvents(cluster);
-    private pollCloudFormationForChanges(cluster, events);
-    private setupCloudFormationPolling(cluster, events);
+    private pollCloudFormationForChanges(cluster);
+    private setupCloudFormationPolling(cluster);
 }

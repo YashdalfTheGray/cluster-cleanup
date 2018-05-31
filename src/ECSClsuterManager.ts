@@ -1,11 +1,8 @@
-import { promisify } from 'util';
 import * as ECS from 'aws-sdk/clients/ecs';
 import * as CloudFormation from 'aws-sdk/clients/cloudformation';
 import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
 
 import { ECSClusterManagerEventEmitter, ClusterManagerEvents } from '.';
-
-const setTimeoutPromise = promisify(setTimeout);
 
 export interface ECSClusterManagerConfig extends ServiceConfigurationOptions{
     enableFargate?: boolean;
@@ -13,7 +10,6 @@ export interface ECSClusterManagerConfig extends ServiceConfigurationOptions{
 
 export interface DeleteOptions {
     verbose?: boolean;
-    block?: boolean;
 }
 
 export class ECSClusterManager {
@@ -207,19 +203,43 @@ export class ECSClusterManager {
         }
     }
 
-    private pollCloudFormationForChanges(cluster: string, events: ECSClusterManagerEventEmitter): Promise<void> {
+    private pollCloudFormationForChanges(cluster: string): Promise<any> {
+        const TEN_SECONDS = 10 * 1000;
         const TEN_MINUTES = 10 * 60 * 1000;
+        let pollTimer, timeoutTimer, deleteTimer;
 
-        const pollTimer = this.setupCloudFormationPolling(cluster, events);
+        pollTimer = this.setupCloudFormationPolling(cluster);
 
-        const timeoutPromise = setTimeout(() => {
-            clearInterval(pollTimer);
-        }, TEN_MINUTES);
+        const timeoutPromise = new Promise((resolve, reject) => {
+            timeoutTimer = setTimeout(() => {
+                clearInterval(deleteTimer);
+                clearInterval(pollTimer);
+                reject(new Error('Cluster deletion timed out'));
+            }, TEN_MINUTES);
+        });
 
-        return Promise.race([]);
+        const deletePromise = new Promise((resolve, reject) => {
+            deleteTimer = setInterval(async () => {
+                try {
+                    const stack = await this.describeStack(cluster);
+                    if (stack.StackStatus === 'DELETE_COMPLETE') {
+                        clearInterval(deleteTimer);
+                        clearInterval(pollTimer);
+                        clearTimeout(timeoutTimer);
+                        resolve(stack);
+                    }
+                }
+                catch (e) {
+                    this.events.emit(ClusterManagerEvents.error, e);
+                    reject(e);
+                }
+            }, TEN_SECONDS);
+        });
+
+        return Promise.race([deletePromise, timeoutPromise]);
     }
 
-    private setupCloudFormationPolling(cluster: string, events: ECSClusterManagerEventEmitter): NodeJS.Timer {
+    private setupCloudFormationPolling(cluster: string): NodeJS.Timer {
         const TEN_SECONDS = 10 * 1000;
         const alreadyDeleted = [];
 
@@ -230,7 +250,7 @@ export class ECSClusterManager {
                     if (e.ResourceStatus === 'DELETE_COMPLETE') {
                         if (!alreadyDeleted.includes(e.LogicalResourceId)) {
                             alreadyDeleted.push(e.LogicalResourceId);
-                            events.emit(ClusterManagerEvents.resourceDeleted, e);
+                            this.events.emit(ClusterManagerEvents.resourceDeleted, e);
                         }
                     }
                 });

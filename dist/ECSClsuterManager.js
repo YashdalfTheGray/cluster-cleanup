@@ -54,7 +54,13 @@ class ECSClusterManager {
         }
         await this.deleteStack(cluster);
         this.events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
-        this.events.emit(_1.ClusterManagerEvents.done, cluster);
+        try {
+            await this.pollCloudFormationForChanges(cluster);
+            this.events.emit(_1.ClusterManagerEvents.done, cluster);
+        }
+        catch (e) {
+            this.events.emit(_1.ClusterManagerEvents.error, e.message);
+        }
     }
     async describeStack(cluster) {
         try {
@@ -161,7 +167,7 @@ class ECSClusterManager {
             timeoutTimer = setTimeout(() => {
                 clearInterval(deleteTimer);
                 clearInterval(pollTimer);
-                reject(new Error('Cluster deletion timed out'));
+                reject(new Error('CloudFormation stack deletion timed out!'));
             }, TEN_MINUTES);
         });
         const deletePromise = new Promise((resolve, reject) => {

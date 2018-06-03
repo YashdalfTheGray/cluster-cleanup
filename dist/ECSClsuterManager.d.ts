@@ -24,4 +24,5 @@ export declare class ECSClusterManager {
     private describeStackEvents(cluster);
     private pollCloudFormationForChanges(cluster);
     private setupCloudFormationPolling(cluster);
+    private deleteCluster(cluster);
 }

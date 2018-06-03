@@ -56,6 +56,9 @@ class ECSClusterManager {
         this.events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
         try {
             await this.pollCloudFormationForChanges(cluster);
+            this.events.emit(_1.ClusterManagerEvents.stackDeletionDone, cluster);
+            const deletedCluster = await this.deleteCluster(cluster);
+            this.events.emit(_1.ClusterManagerEvents.clusterDeleted, deletedCluster);
             this.events.emit(_1.ClusterManagerEvents.done, cluster);
         }
         catch (e) {
@@ -70,7 +73,7 @@ class ECSClusterManager {
             return describeStackResponse.Stacks[0];
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return null;
         }
     }
@@ -82,7 +85,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -94,7 +97,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -106,7 +109,7 @@ class ECSClusterManager {
             return listInstanceResponse.containerInstanceArns;
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -118,7 +121,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -130,7 +133,7 @@ class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -142,7 +145,7 @@ class ECSClusterManager {
             return deleteStackResponse;
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return e;
         }
     }
@@ -154,7 +157,7 @@ class ECSClusterManager {
             return describeStackEventsResponse.StackEvents;
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(_1.ClusterManagerEvents.error, e);
             return e;
         }
     }
@@ -205,10 +208,20 @@ class ECSClusterManager {
                 });
             }
             catch (e) {
-                console.log(e.message);
+                this.events.emit(_1.ClusterManagerEvents.error, e);
             }
         };
         return setInterval(pollEvent, TEN_SECONDS);
+    }
+    async deleteCluster(cluster) {
+        try {
+            const response = await this.ecs.deleteCluster({ cluster }).promise();
+            return response.cluster;
+        }
+        catch (e) {
+            this.events.emit(_1.ClusterManagerEvents.error, e);
+            return e;
+        }
     }
 }
 exports.ECSClusterManager = ECSClusterManager;

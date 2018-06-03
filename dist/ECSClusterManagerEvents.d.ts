@@ -13,6 +13,7 @@ export declare enum ClusterManagerEvents {
     instancesFound = "ECSClusterManager.instancesFound",
     instancesDeregistered = "ECSCluserManager.instancesDeregistered",
     stackDeletionStarted = "ECSClusterManager.stackDeletionStarted",
+    stackDeletionDone = "ECSClusterManager.stackDeletionDone",
     resourceDeleted = "ECSClusterManager.resourceDeleted",
     clusterDeleted = "ECSClusterManager.clusterDeleted",
 }
@@ -28,6 +29,9 @@ export declare class ECSClusterManagerEventEmitter {
     onServicesScaledDown(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction;
     onInstancesFound(l: Listener<string[]>): RemoveListenerFunction;
     onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction;
+    onStackDeletionStarted(l: Listener<string>): RemoveListenerFunction;
+    onStackDeletionDone(l: Listener<string>): RemoveListenerFunction;
+    onClusterDeleted(l: Listener<ECSTypes.Cluster>): RemoveListenerFunction;
     onDone(l: Listener<string>): RemoveListenerFunction;
     onError(l: Listener<Error>): RemoveListenerFunction;
 }

@@ -13,6 +13,7 @@ var ClusterManagerEvents;
     ClusterManagerEvents["instancesFound"] = "ECSClusterManager.instancesFound";
     ClusterManagerEvents["instancesDeregistered"] = "ECSCluserManager.instancesDeregistered";
     ClusterManagerEvents["stackDeletionStarted"] = "ECSClusterManager.stackDeletionStarted";
+    ClusterManagerEvents["stackDeletionDone"] = "ECSClusterManager.stackDeletionDone";
     ClusterManagerEvents["resourceDeleted"] = "ECSClusterManager.resourceDeleted";
     ClusterManagerEvents["clusterDeleted"] = "ECSClusterManager.clusterDeleted";
 })(ClusterManagerEvents = exports.ClusterManagerEvents || (exports.ClusterManagerEvents = {}));
@@ -54,6 +55,18 @@ class ECSClusterManagerEventEmitter {
     onInstancesDeregistered(l) {
         this.events.addListener(ClusterManagerEvents.instancesDeregistered, l);
         return () => { this.events.removeListener(ClusterManagerEvents.instancesDeregistered, l); };
+    }
+    onStackDeletionStarted(l) {
+        this.events.addListener(ClusterManagerEvents.stackDeletionStarted, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.stackDeletionStarted, l); };
+    }
+    onStackDeletionDone(l) {
+        this.events.addListener(ClusterManagerEvents.stackDeletionDone, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.stackDeletionDone, l); };
+    }
+    onClusterDeleted(l) {
+        this.events.addListener(ClusterManagerEvents.clusterDeleted, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.clusterDeleted, l); };
     }
     onDone(l) {
         this.events.addListener(ClusterManagerEvents.done, l);

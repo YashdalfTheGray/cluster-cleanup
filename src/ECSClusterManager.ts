@@ -50,6 +50,16 @@ export class ECSClusterManager {
         // 10. delete cluster
 
         this.events.emit(ClusterManagerEvents.start, cluster);
+
+        if (!(await this.doesClusterExist(cluster))) {
+            this.events.emit(
+                ClusterManagerEvents.error,
+                new Error(`Cluster ${cluster} does not exist in the region specified`)
+            );
+            this.events.emit(ClusterManagerEvents.done, cluster);
+            return;
+        }
+
         let services: ECS.Service[];
         let instances: ECS.ContainerInstance[];
 
@@ -77,19 +87,52 @@ export class ECSClusterManager {
             this.events.emit(ClusterManagerEvents.servicesDeleted, services);
         }
 
-        await this.deleteStack(cluster);
-        this.events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
+        if (stack) {
+            await this.deleteStack(cluster);
+            this.events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
 
-        try {
-            await this.pollCloudFormationForChanges(cluster);
-            this.events.emit(ClusterManagerEvents.stackDeletionDone, cluster);
+            try {
+                await this.pollCloudFormationForChanges(cluster);
+                this.events.emit(ClusterManagerEvents.stackDeletionDone, cluster);
 
+                const deletedCluster = await this.deleteCluster(cluster);
+                this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);        
+                this.events.emit(ClusterManagerEvents.done, cluster);        
+            }
+            catch (e) {
+                this.events.emit(ClusterManagerEvents.error, e.message);
+                this.events.emit(ClusterManagerEvents.done, cluster); 
+            }
+        }
+        else {
             const deletedCluster = await this.deleteCluster(cluster);
             this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);        
-            this.events.emit(ClusterManagerEvents.done, cluster);        
+            this.events.emit(ClusterManagerEvents.done, cluster); 
+        }
+    }
+
+    private async describeCluster(cluster: string): Promise<ECS.Cluster[]> {
+        try {
+            const response = await this.ecs.describeClusters({ clusters: [cluster] }).promise();
+            return response.clusters;
         }
         catch (e) {
-            this.events.emit(ClusterManagerEvents.error, e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
+            return [];
+        }
+    }
+
+    private async doesClusterExist(cluster: string): Promise<boolean> {
+        try {
+            const clusters = await this.describeCluster(cluster);
+            return clusters
+            .filter(({ status }) => status !== 'INACTIVE')
+            .filter(({ clusterName }) => clusterName === cluster)
+            .length !== 0;
+        }
+        catch (e) {
+            this.events.emit(ClusterManagerEvents.error, e);
+            return false;
         }
     }
 

@@ -64,6 +64,10 @@ class ECSClusterManagerEventEmitter {
         this.events.addListener(ClusterManagerEvents.stackDeletionDone, l);
         return () => { this.events.removeListener(ClusterManagerEvents.stackDeletionDone, l); };
     }
+    onResourceDeleted(l) {
+        this.events.addListener(ClusterManagerEvents.resourceDeleted, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.resourceDeleted, l); };
+    }
     onClusterDeleted(l) {
         this.events.addListener(ClusterManagerEvents.clusterDeleted, l);
         return () => { this.events.removeListener(ClusterManagerEvents.clusterDeleted, l); };

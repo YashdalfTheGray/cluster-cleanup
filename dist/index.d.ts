@@ -1,2 +1,2 @@
-export * from './ECSClsuterManager';
+export * from './ECSClusterManager';
 export * from './ECSClusterManagerEvents';

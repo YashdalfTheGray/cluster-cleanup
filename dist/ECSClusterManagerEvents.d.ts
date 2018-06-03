@@ -31,6 +31,7 @@ export declare class ECSClusterManagerEventEmitter {
     onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction;
     onStackDeletionStarted(l: Listener<string>): RemoveListenerFunction;
     onStackDeletionDone(l: Listener<string>): RemoveListenerFunction;
+    onResourceDeleted(l: Listener<CloudformationTypes.StackEvent>): RemoveListenerFunction;
     onClusterDeleted(l: Listener<ECSTypes.Cluster>): RemoveListenerFunction;
     onDone(l: Listener<string>): RemoveListenerFunction;
     onError(l: Listener<Error>): RemoveListenerFunction;

@@ -82,6 +82,10 @@ export class ECSClusterManager {
 
         try {
             await this.pollCloudFormationForChanges(cluster);
+            this.events.emit(ClusterManagerEvents.stackDeletionDone, cluster);
+
+            const deletedCluster = await this.deleteCluster(cluster);
+            this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);        
             this.events.emit(ClusterManagerEvents.done, cluster);        
         }
         catch (e) {
@@ -98,7 +102,7 @@ export class ECSClusterManager {
             return describeStackResponse.Stacks[0];
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return null;
         }
     }
@@ -114,7 +118,7 @@ export class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -130,7 +134,7 @@ export class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -144,7 +148,7 @@ export class ECSClusterManager {
             return listInstanceResponse.containerInstanceArns;
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -160,7 +164,7 @@ export class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -176,7 +180,7 @@ export class ECSClusterManager {
             }, []);
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return [];
         }
     }
@@ -190,7 +194,7 @@ export class ECSClusterManager {
             return deleteStackResponse;
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return e;
         }
     }
@@ -204,7 +208,7 @@ export class ECSClusterManager {
             return describeStackEventsResponse.StackEvents;
         }
         catch (e) {
-            console.log(e.message);
+            this.events.emit(ClusterManagerEvents.error, e);
             return e;
         }
     }
@@ -262,10 +266,21 @@ export class ECSClusterManager {
                 });
             }
             catch (e) {
-                console.log(e.message);
+                this.events.emit(ClusterManagerEvents.error, e);
             }
         };
 
         return setInterval(pollEvent, TEN_SECONDS);
+    }
+
+    private async deleteCluster(cluster: string): Promise<ECS.Cluster> {
+        try {
+            const response = await this.ecs.deleteCluster({ cluster }).promise();
+            return response.cluster;
+        }
+        catch (e) {
+            this.events.emit(ClusterManagerEvents.error, e);
+            return e;
+        }
     }
 }

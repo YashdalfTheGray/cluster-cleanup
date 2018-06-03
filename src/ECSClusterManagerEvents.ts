@@ -16,6 +16,7 @@ export enum ClusterManagerEvents {
     instancesFound = 'ECSClusterManager.instancesFound',
     instancesDeregistered = 'ECSCluserManager.instancesDeregistered',
     stackDeletionStarted = 'ECSClusterManager.stackDeletionStarted',
+    stackDeletionDone = 'ECSClusterManager.stackDeletionDone',
     resourceDeleted = 'ECSClusterManager.resourceDeleted',
     clusterDeleted = 'ECSClusterManager.clusterDeleted'
 }
@@ -69,6 +70,21 @@ export class ECSClusterManagerEventEmitter {
     public onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction {
         this.events.addListener(ClusterManagerEvents.instancesDeregistered, l);
         return () => { this.events.removeListener(ClusterManagerEvents.instancesDeregistered, l); };
+    }
+
+    public onStackDeletionStarted(l: Listener<string>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.stackDeletionStarted, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.stackDeletionStarted, l); };
+    }
+
+    public onStackDeletionDone(l: Listener<string>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.stackDeletionDone, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.stackDeletionDone, l); };
+    }
+
+    public onClusterDeleted(l: Listener<ECSTypes.Cluster>): RemoveListenerFunction {
+        this.events.addListener(ClusterManagerEvents.clusterDeleted, l);
+        return () => { this.events.removeListener(ClusterManagerEvents.clusterDeleted, l); };
     }
 
     public onDone(l: Listener<string>): RemoveListenerFunction {

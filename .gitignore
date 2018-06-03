@@ -1,6 +1,9 @@
 # test files
 test.js
 
+# VScode files
+.vscode*
+
 # Created by https://www.gitignore.io/api/osx,node,linux,windows
 
 ### Linux ###

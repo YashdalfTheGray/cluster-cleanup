@@ -27,8 +27,14 @@ const ECSClusterManager = require('cluster-manager');
 const ecsClusterManager = new ECSClusterManager();
 
 (async() => {
-    await ecsClusterManager.deleteClusterAndResources('default');
+    const events = ecsClusterManager.deleteClusterAndResources('default');
+
+    events.onError(e => console.error(e));
 })
 ```
+
+The `ECSClusterManager` constructor takes the standard AWS SDK for Node.js options object but adds another optional property called `enableFargate`. This will make ClusterManager look for Fargate services in addition to EC2 services while deleting the cluster.
+
+The `deleteClusterAndResources` function can optionally take an object with a single property called `verbose` which will log out every event coming from cluster manager. 
 
 Issue and PR templates derived from [smhxx/atom-ts-transpiler](https://github.com/smhxx/atom-ts-transpiler).

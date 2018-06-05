@@ -22,9 +22,10 @@ export declare class ECSClusterManager {
     private getAllInstancesFor(cluster);
     private deregisterContainerInstances(cluster, instances);
     private deleteAllServices(cluster, services);
+    private describeStackResources(stackId, resourceId);
     private deleteStack(cluster);
     private describeStackEvents(cluster);
-    private pollCloudFormationForChanges(cluster);
+    private pollCloudFormationForChanges(cluster, stack);
     private setupCloudFormationPolling(cluster);
     private deleteCluster(cluster);
 }

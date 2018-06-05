@@ -92,7 +92,7 @@ export class ECSClusterManager {
             this.events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
 
             try {
-                await this.pollCloudFormationForChanges(cluster);
+                await this.pollCloudFormationForChanges(cluster, stack);
                 this.events.emit(ClusterManagerEvents.stackDeletionDone, cluster);
 
                 const deletedCluster = await this.deleteCluster(cluster);
@@ -228,6 +228,21 @@ export class ECSClusterManager {
         }
     }
 
+    private async describeStackResources(stackId: string, resourceId: string): Promise<CloudFormation.StackResource[]> {
+        try {
+            const describeResourceResponse = await this.cloudFormation.describeStackResources({
+                StackName: stackId,
+                LogicalResourceId: resourceId
+            }).promise();
+
+            return describeResourceResponse.StackResources;
+        }
+        catch (e) {
+            this.events.emit(ClusterManagerEvents.error, e);
+            return [];
+        }
+    }
+
     private async deleteStack(cluster: string): Promise<Object> {
         try {
             const deleteStackResponse = await this.cloudFormation.deleteStack({
@@ -256,7 +271,7 @@ export class ECSClusterManager {
         }
     }
 
-    private pollCloudFormationForChanges(cluster: string): Promise<any> {
+    private pollCloudFormationForChanges(cluster: string, stack: CloudFormation.Stack): Promise<any> {
         const TEN_SECONDS = 10 * 1000;
         const TEN_MINUTES = 10 * 60 * 1000;
         let pollTimer, timeoutTimer, deleteTimer;

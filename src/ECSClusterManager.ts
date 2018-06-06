@@ -48,6 +48,11 @@ export class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
+        let startTime;
+
+        if (options.verbose) {
+            startTime = Date.now();
+        }
 
         this.events.emit(ClusterManagerEvents.start, cluster);
 
@@ -108,6 +113,10 @@ export class ECSClusterManager {
             const deletedCluster = await this.deleteCluster(cluster);
             this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);        
             this.events.emit(ClusterManagerEvents.done, cluster); 
+        }
+
+        if (options.verbose) {
+            console.log(`Deleting cluster ${cluster} took ${(Date.now() - startTime) / 1000}s.`);
         }
     }
 

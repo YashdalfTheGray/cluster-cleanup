@@ -29,6 +29,10 @@ class ECSClusterManager {
         // 8. delete CloudFormation stack
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
+        let startTime;
+        if (options.verbose) {
+            startTime = Date.now();
+        }
         this.events.emit(_1.ClusterManagerEvents.start, cluster);
         if (!(await this.doesClusterExist(cluster))) {
             this.events.emit(_1.ClusterManagerEvents.error, new Error(`Cluster ${cluster} does not exist in the region specified`));
@@ -76,6 +80,9 @@ class ECSClusterManager {
             const deletedCluster = await this.deleteCluster(cluster);
             this.events.emit(_1.ClusterManagerEvents.clusterDeleted, deletedCluster);
             this.events.emit(_1.ClusterManagerEvents.done, cluster);
+        }
+        if (options.verbose) {
+            console.log(`Deleting cluster ${cluster} took ${(Date.now() - startTime) / 1000}s.`);
         }
     }
     async describeCluster(cluster) {
@@ -211,48 +218,32 @@ class ECSClusterManager {
         }
     }
     pollCloudFormationForChanges(cluster, stack) {
-        const TEN_SECONDS = 10 * 1000;
         const TEN_MINUTES = 10 * 60 * 1000;
-        let pollTimer, timeoutTimer, deleteTimer;
+        let pollTimer, timeoutTimer;
         pollTimer = this.setupCloudFormationPolling(cluster);
         const timeoutPromise = new Promise((resolve, reject) => {
             timeoutTimer = setTimeout(() => {
-                clearInterval(deleteTimer);
                 clearInterval(pollTimer);
                 reject(new Error('CloudFormation stack deletion timed out!'));
             }, TEN_MINUTES);
         });
-        const deletePromise = new Promise((resolve, reject) => {
-            deleteTimer = setInterval(async () => {
-                try {
-                    const stack = await this.describeStack(cluster);
-                    if (stack.StackStatus === 'DELETE_COMPLETE') {
-                        clearInterval(deleteTimer);
-                        clearInterval(pollTimer);
-                        clearTimeout(timeoutTimer);
-                        resolve(stack);
-                    }
-                }
-                catch (e) {
-                    this.events.emit(_1.ClusterManagerEvents.error, e);
-                    reject(e);
-                }
-            }, TEN_SECONDS);
+        const deletePromise = this.cloudFormation.waitFor('stackDeleteComplete', { StackName: stack.StackId }).promise().then(describeStacksResponse => {
+            clearInterval(pollTimer);
+            clearTimeout(timeoutTimer);
+            return describeStacksResponse.Stacks;
         });
         return Promise.race([deletePromise, timeoutPromise]);
     }
     setupCloudFormationPolling(cluster) {
-        const TEN_SECONDS = 10 * 1000;
+        const THIRTY_SECONDS = 30 * 1000;
         const alreadyDeleted = [];
         const pollEvent = async () => {
             try {
-                const stackEvents = await this.describeStackEvents(cluster);
+                const stackEvents = await this.describeStackEvents(cluster) || [];
                 stackEvents.forEach(e => {
-                    if (e.ResourceStatus === 'DELETE_COMPLETE') {
-                        if (!alreadyDeleted.includes(e.LogicalResourceId)) {
-                            alreadyDeleted.push(e.LogicalResourceId);
-                            this.events.emit(_1.ClusterManagerEvents.resourceDeleted, e);
-                        }
+                    if (e.ResourceStatus === 'DELETE_COMPLETE' && !alreadyDeleted.includes(e.LogicalResourceId)) {
+                        alreadyDeleted.push(e.LogicalResourceId);
+                        this.events.emit(_1.ClusterManagerEvents.resourceDeleted, e);
                     }
                 });
             }
@@ -260,7 +251,7 @@ class ECSClusterManager {
                 this.events.emit(_1.ClusterManagerEvents.error, e);
             }
         };
-        return setInterval(pollEvent, TEN_SECONDS);
+        return setInterval(pollEvent, THIRTY_SECONDS);
     }
     async deleteCluster(cluster) {
         try {

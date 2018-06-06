@@ -272,54 +272,41 @@ export class ECSClusterManager {
     }
 
     private pollCloudFormationForChanges(cluster: string, stack: CloudFormation.Stack): Promise<any> {
-        const TEN_SECONDS = 10 * 1000;
         const TEN_MINUTES = 10 * 60 * 1000;
-        let pollTimer, timeoutTimer, deleteTimer;
+        let pollTimer, timeoutTimer;
 
         pollTimer = this.setupCloudFormationPolling(cluster);
 
         const timeoutPromise = new Promise((resolve, reject) => {
             timeoutTimer = setTimeout(() => {
-                clearInterval(deleteTimer);
                 clearInterval(pollTimer);
                 reject(new Error('CloudFormation stack deletion timed out!'));
             }, TEN_MINUTES);
         });
 
-        const deletePromise = new Promise((resolve, reject) => {
-            deleteTimer = setInterval(async () => {
-                try {
-                    const stack = await this.describeStack(cluster);
-                    if (stack.StackStatus === 'DELETE_COMPLETE') {
-                        clearInterval(deleteTimer);
-                        clearInterval(pollTimer);
-                        clearTimeout(timeoutTimer);
-                        resolve(stack);
-                    }
-                }
-                catch (e) {
-                    this.events.emit(ClusterManagerEvents.error, e);
-                    reject(e);
-                }
-            }, TEN_SECONDS);
+        const deletePromise = this.cloudFormation.waitFor(
+            'stackDeleteComplete',
+            { StackName: stack.StackId }
+        ).promise().then(describeStacksResponse => {
+            clearInterval(pollTimer);
+            clearTimeout(timeoutTimer);
+            return describeStacksResponse.Stacks;
         });
 
         return Promise.race([deletePromise, timeoutPromise]);
     }
 
     private setupCloudFormationPolling(cluster: string): NodeJS.Timer {
-        const TEN_SECONDS = 10 * 1000;
+        const THIRTY_SECONDS = 30 * 1000;
         const alreadyDeleted = [];
 
         const pollEvent = async () => {
             try {
-                const stackEvents = await this.describeStackEvents(cluster);
+                const stackEvents = await this.describeStackEvents(cluster) || [];
                 stackEvents.forEach(e => {
-                    if (e.ResourceStatus === 'DELETE_COMPLETE') {
-                        if (!alreadyDeleted.includes(e.LogicalResourceId)) {
-                            alreadyDeleted.push(e.LogicalResourceId);
-                            this.events.emit(ClusterManagerEvents.resourceDeleted, e);
-                        }
+                    if (e.ResourceStatus === 'DELETE_COMPLETE' && !alreadyDeleted.includes(e.LogicalResourceId)) {
+                        alreadyDeleted.push(e.LogicalResourceId);
+                        this.events.emit(ClusterManagerEvents.resourceDeleted, e);
                     }
                 });
             }
@@ -328,7 +315,7 @@ export class ECSClusterManager {
             }
         };
 
-        return setInterval(pollEvent, TEN_SECONDS);
+        return setInterval(pollEvent, THIRTY_SECONDS);
     }
 
     private async deleteCluster(cluster: string): Promise<ECS.Cluster> {

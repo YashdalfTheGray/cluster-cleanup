@@ -240,11 +240,12 @@ class ECSClusterManager {
         const pollEvent = async () => {
             try {
                 const stackEvents = await this.describeStackEvents(cluster) || [];
-                stackEvents.forEach(e => {
-                    if (e.ResourceStatus === 'DELETE_COMPLETE' && !alreadyDeleted.includes(e.LogicalResourceId)) {
-                        alreadyDeleted.push(e.LogicalResourceId);
-                        this.events.emit(_1.ClusterManagerEvents.resourceDeleted, e);
-                    }
+                stackEvents
+                    .filter(e => e.ResourceStatus === 'DELETE_COMPLETE')
+                    .filter(e => !alreadyDeleted.includes(e.LogicalResourceId))
+                    .forEach(e => {
+                    alreadyDeleted.push(e.LogicalResourceId);
+                    this.events.emit(_1.ClusterManagerEvents.resourceDeleted, e);
                 });
             }
             catch (e) {

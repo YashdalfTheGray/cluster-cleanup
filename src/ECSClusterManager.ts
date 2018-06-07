@@ -276,7 +276,7 @@ export class ECSClusterManager {
         }
         catch (e) {
             this.events.emit(ClusterManagerEvents.error, e);
-            return e;
+            return [];
         }
     }
 
@@ -306,17 +306,18 @@ export class ECSClusterManager {
     }
 
     private setupCloudFormationPolling(cluster: string): NodeJS.Timer {
-        const THIRTY_SECONDS = 30 * 1000;
+        const TEN_SECONDS = 10 * 1000;
         const alreadyDeleted = [];
 
         const pollEvent = async () => {
             try {
                 const stackEvents = await this.describeStackEvents(cluster) || [];
-                stackEvents.forEach(e => {
-                    if (e.ResourceStatus === 'DELETE_COMPLETE' && !alreadyDeleted.includes(e.LogicalResourceId)) {
-                        alreadyDeleted.push(e.LogicalResourceId);
-                        this.events.emit(ClusterManagerEvents.resourceDeleted, e);
-                    }
+                stackEvents
+                .filter(e => e.ResourceStatus === 'DELETE_COMPLETE')
+                .filter(e => !alreadyDeleted.includes(e.LogicalResourceId))
+                .forEach(e => {
+                    alreadyDeleted.push(e.LogicalResourceId);
+                    this.events.emit(ClusterManagerEvents.resourceDeleted, e);
                 });
             }
             catch (e) {
@@ -324,7 +325,7 @@ export class ECSClusterManager {
             }
         };
 
-        return setInterval(pollEvent, THIRTY_SECONDS);
+        return setInterval(pollEvent, TEN_SECONDS);
     }
 
     private async deleteCluster(cluster: string): Promise<ECS.Cluster> {

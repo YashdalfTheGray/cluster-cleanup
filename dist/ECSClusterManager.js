@@ -214,7 +214,7 @@ class ECSClusterManager {
         }
         catch (e) {
             this.events.emit(_1.ClusterManagerEvents.error, e);
-            return e;
+            return [];
         }
     }
     pollCloudFormationForChanges(cluster, stack) {
@@ -235,7 +235,7 @@ class ECSClusterManager {
         return Promise.race([deletePromise, timeoutPromise]);
     }
     setupCloudFormationPolling(cluster) {
-        const THIRTY_SECONDS = 30 * 1000;
+        const TEN_SECONDS = 10 * 1000;
         const alreadyDeleted = [];
         const pollEvent = async () => {
             try {
@@ -251,7 +251,7 @@ class ECSClusterManager {
                 this.events.emit(_1.ClusterManagerEvents.error, e);
             }
         };
-        return setInterval(pollEvent, THIRTY_SECONDS);
+        return setInterval(pollEvent, TEN_SECONDS);
     }
     async deleteCluster(cluster) {
         try {

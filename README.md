@@ -60,7 +60,7 @@ For example, to listen for when the CloudFormation stack is deleted,
 
 ```javascript
 const removeListener = events.onStackDeletionDone((stackId) => {
-    console.log(`Stack ${stackId} deleted!`)'
+    console.log(`Stack ${stackId} deleted!`);
 });
 
 // other code

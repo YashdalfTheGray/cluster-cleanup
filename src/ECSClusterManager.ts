@@ -94,25 +94,25 @@ export class ECSClusterManager {
 
         if (stack) {
             await this.deleteStack(cluster);
-            this.events.emit(ClusterManagerEvents.stackDeletionStarted, cluster);
+            this.events.emit(ClusterManagerEvents.stackDeletionStarted, stack.StackId);
 
             try {
                 await this.pollCloudFormationForChanges(cluster, stack);
-                this.events.emit(ClusterManagerEvents.stackDeletionDone, cluster);
+                this.events.emit(ClusterManagerEvents.stackDeletionDone, stack.StackId);
 
                 const deletedCluster = await this.deleteCluster(cluster);
-                this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);        
-                this.events.emit(ClusterManagerEvents.done, cluster);        
+                this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);
+                this.events.emit(ClusterManagerEvents.done, cluster);
             }
             catch (e) {
                 this.events.emit(ClusterManagerEvents.error, e.message);
-                this.events.emit(ClusterManagerEvents.done, cluster); 
+                this.events.emit(ClusterManagerEvents.done, cluster);
             }
         }
         else {
             const deletedCluster = await this.deleteCluster(cluster);
-            this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);        
-            this.events.emit(ClusterManagerEvents.done, cluster); 
+            this.events.emit(ClusterManagerEvents.clusterDeleted, deletedCluster);
+            this.events.emit(ClusterManagerEvents.done, cluster);
         }
 
         if (options.verbose) {

@@ -63,10 +63,10 @@ class ECSClusterManager {
         }
         if (stack) {
             await this.deleteStack(cluster);
-            this.events.emit(_1.ClusterManagerEvents.stackDeletionStarted, cluster);
+            this.events.emit(_1.ClusterManagerEvents.stackDeletionStarted, stack.StackId);
             try {
                 await this.pollCloudFormationForChanges(cluster, stack);
-                this.events.emit(_1.ClusterManagerEvents.stackDeletionDone, cluster);
+                this.events.emit(_1.ClusterManagerEvents.stackDeletionDone, stack.StackId);
                 const deletedCluster = await this.deleteCluster(cluster);
                 this.events.emit(_1.ClusterManagerEvents.clusterDeleted, deletedCluster);
                 this.events.emit(_1.ClusterManagerEvents.done, cluster);

@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.com/YashdalfTheGray/cluster-cleanup.svg?branch=master)](https://travis-ci.com/YashdalfTheGray/cluster-cleanup)
 
 # cluster-cleanup
-Library to fill the gap between the SDK and the CLI/Console for AWS ECS.
+Library to fill the gap between the SDK and the CLI/Console for deleting an ECS cluster.
 
 ## What does this do?
 

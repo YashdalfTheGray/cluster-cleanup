@@ -2,27 +2,27 @@ import { Types as ECSTypes } from 'aws-sdk/clients/ecs';
 import { Types as CloudformationTypes } from 'aws-sdk/clients/cloudformation';
 export declare type Listener<T> = (data: T) => void;
 export declare type RemoveListenerFunction = () => void;
-export declare enum ClusterManagerEvents {
-    start = "ECSClusterManager.start",
-    done = "ECSClusterManager.done",
-    error = "ECSClusterManager.error",
-    stackFound = "ECSClusterManager.stackFound",
-    servicesFound = "ECSClusterManager.servicesFound",
-    servicesScaledDown = "ECSClusterManager.servicesScaledDown",
-    servicesDeleted = "ECSClusterManager.servicesDeleted",
-    instancesFound = "ECSClusterManager.instancesFound",
+export declare enum ClusterCleanupEvents {
+    start = "ClusterCleanup.start",
+    done = "ClusterCleanup.done",
+    error = "ClusterCleanup.error",
+    stackFound = "ClusterCleanup.stackFound",
+    servicesFound = "ClusterCleanup.servicesFound",
+    servicesScaledDown = "ClusterCleanup.servicesScaledDown",
+    servicesDeleted = "ClusterCleanup.servicesDeleted",
+    instancesFound = "ClusterCleanup.instancesFound",
     instancesDeregistered = "ECSCluserManager.instancesDeregistered",
-    stackDeletionStarted = "ECSClusterManager.stackDeletionStarted",
-    stackDeletionDone = "ECSClusterManager.stackDeletionDone",
-    resourceDeleted = "ECSClusterManager.resourceDeleted",
-    clusterDeleted = "ECSClusterManager.clusterDeleted",
+    stackDeletionStarted = "ClusterCleanup.stackDeletionStarted",
+    stackDeletionDone = "ClusterCleanup.stackDeletionDone",
+    resourceDeleted = "ClusterCleanup.resourceDeleted",
+    clusterDeleted = "ClusterCleanup.clusterDeleted",
 }
-export declare class ECSClusterManagerEventEmitter {
+export declare class ClusterCleanupEventEmitter {
     private events;
     verbose: boolean;
     constructor(verbose?: boolean);
     emit(event: string, ...data: any[]): boolean;
-    removeAllListeners(event?: string): ECSClusterManagerEventEmitter;
+    removeAllListeners(event?: string): ClusterCleanupEventEmitter;
     onStart(l: Listener<string>): RemoveListenerFunction;
     onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction;
     onServicesFound(l: Listener<string[]>): RemoveListenerFunction;

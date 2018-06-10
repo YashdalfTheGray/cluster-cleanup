@@ -1,3 +1,4 @@
-src/**/*.spec.js
+src/**/*.ts
+.github/**/*
 .travis.yml
 tsconfig.json

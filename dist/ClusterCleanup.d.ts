@@ -1,18 +1,18 @@
 import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
-import { ECSClusterManagerEventEmitter } from '.';
-export interface ECSClusterManagerConfig extends ServiceConfigurationOptions {
+import { ClusterCleanupEventEmitter } from '.';
+export interface ClusterCleanupConfig extends ServiceConfigurationOptions {
     enableFargate?: boolean;
 }
 export interface DeleteOptions {
     verbose?: boolean;
 }
-export declare class ECSClusterManager {
+export declare class ClusterCleanup {
     private launchTypes;
     private ecs;
     private cloudFormation;
     private events;
-    constructor(config?: ECSClusterManagerConfig);
-    deleteClusterAndResources(cluster: string, options?: DeleteOptions): ECSClusterManagerEventEmitter;
+    constructor(config?: ClusterCleanupConfig);
+    deleteClusterAndResources(cluster: string, options?: DeleteOptions): ClusterCleanupEventEmitter;
     private deleteHelper(cluster, options);
     private describeCluster(cluster);
     private doesClusterExist(cluster);

@@ -1,6 +1,6 @@
-[![Build Status](https://travis-ci.com/YashdalfTheGray/cluster-manager.svg?branch=master)](https://travis-ci.com/YashdalfTheGray/cluster-manager)
+[![Build Status](https://travis-ci.com/YashdalfTheGray/cluster-cleanup.svg?branch=master)](https://travis-ci.com/YashdalfTheGray/cluster-cleanup)
 
-# cluster-manager
+# cluster-cleanup
 Library to fill the gap between the SDK and the CLI/Console for AWS ECS.
 
 ## What does this do?
@@ -19,21 +19,21 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 
 ## Usage
 
-Run `npm install cluster-manager` to pull down the package. Require it in your code by creating an instance of the `ECSClusterManager` class which can be passed the same config object as the AWS SDK. You can then use it to delete clusters completely including the resources that come with ECS clusters. Sample code below.
+Run `npm install cluster-cleanup` to pull down the package. Require it in your code by creating an instance of the `ClusterCleanup` class which can be passed the same config object as the AWS SDK. You can then use it to delete clusters completely including the resources that come with ECS clusters. Sample code below.
 
 ```javascript
-const ECSClusterManager = require('cluster-manager');
+const ClusterCleanup = require('cluster-cleanup');
 
-const ecsClusterManager = new ECSClusterManager();
+const clusterCleanup = new ClusterCleanup();
 
 (async() => {
-    const events = ecsClusterManager.deleteClusterAndResources('default');
+    const events = clusterCleanup.deleteClusterAndResources('default');
 
     events.onError(e => console.error(e));
 })
 ```
 
-The `ECSClusterManager` constructor takes the standard AWS SDK for Node.js options object but adds another optional property called `enableFargate`. This will make ClusterManager look for Fargate services in addition to EC2 services while deleting the cluster.
+The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object but adds another optional property called `enableFargate`. This will make ClusterManager look for Fargate services in addition to EC2 services while deleting the cluster.
 
 The `deleteClusterAndResources` function can optionally take an object with a single property called `verbose` which will log out every event coming from cluster manager.
 

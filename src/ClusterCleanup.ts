@@ -58,10 +58,9 @@ export class ClusterCleanup {
 
         if (!(await this.doesClusterExist(cluster))) {
             this.events.emit(
-                ClusterCleanupEvents.error,
+                ClusterCleanupEvents.doneWithError,
                 new Error(`Cluster ${cluster} does not exist in the region specified`)
             );
-            this.events.emit(ClusterCleanupEvents.done, cluster);
             return;
         }
 

@@ -1,5 +1,6 @@
 # test files
 test.js
+dist/**/*.spec.*
 
 # Created by https://www.gitignore.io/api/osx,node,linux,windows
 

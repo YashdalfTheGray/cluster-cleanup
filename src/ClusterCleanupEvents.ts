@@ -8,6 +8,7 @@ export type RemoveListenerFunction = () => void;
 export enum ClusterCleanupEvents {
     start = 'ClusterCleanup.start',
     done = 'ClusterCleanup.done',
+    doneWithError = 'ClusterCleanup.doneWithError',
     error = 'ClusterCleanup.error',
     stackFound = 'ClusterCleanup.stackFound',
     servicesFound = 'ClusterCleanup.servicesFound',
@@ -95,6 +96,11 @@ export class ClusterCleanupEventEmitter {
     public onDone(l: Listener<string>): RemoveListenerFunction {
         this.events.addListener(ClusterCleanupEvents.done, l);
         return () => { this.events.removeListener(ClusterCleanupEvents.done, l); };
+    }
+
+    public onDoneWithError(l: Listener<Error>): RemoveListenerFunction {
+        this.events.addListener(ClusterCleanupEvents.doneWithError, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.doneWithError, l); };
     }
 
     public onError(l: Listener<Error>): RemoveListenerFunction {

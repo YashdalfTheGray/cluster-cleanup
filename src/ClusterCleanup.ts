@@ -104,8 +104,8 @@ export class ClusterCleanup {
                 this.events.emit(ClusterCleanupEvents.done, cluster);
             }
             catch (e) {
-                this.events.emit(ClusterCleanupEvents.error, e.message);
-                this.events.emit(ClusterCleanupEvents.done, cluster);
+                this.events.emit(ClusterCleanupEvents.doneWithError, e);
+                return;
             }
         }
         else {
@@ -333,8 +333,7 @@ export class ClusterCleanup {
             return response.cluster;
         }
         catch (e) {
-            this.events.emit(ClusterCleanupEvents.error, e);
-            return e;
+            this.events.emit(ClusterCleanupEvents.doneWithError, e);
         }
     }
 }

@@ -66,6 +66,7 @@ export class ClusterCleanup {
 
         let services: ECS.Service[];
         let instances: ECS.ContainerInstance[];
+        let tasks: ECS.Task[];
 
         const stack = await this.describeStack(cluster);
         if (stack) {
@@ -77,6 +78,13 @@ export class ClusterCleanup {
             this.events.emit(ClusterCleanupEvents.servicesFound, foundServices);
             services = await this.scaleServicesToZero(cluster, foundServices);
             this.events.emit(ClusterCleanupEvents.servicesScaledDown, services);
+        }
+
+        const foundTasks = await this.getAllTasksFor(cluster);
+        if (foundTasks.length > 0) {
+            this.events.emit(ClusterCleanupEvents.tasksFound, foundTasks);
+            tasks = await this.stopTasks(cluster, foundTasks);
+            this.events.emit(ClusterCleanupEvents.tasksStopped, tasks);
         }
 
         const foundInstances = await this.getAllInstancesFor(cluster);
@@ -183,6 +191,31 @@ export class ClusterCleanup {
             return scaleServiceResponses.reduce((acc, r) => {
                 return acc.concat(r.service);
             }, []);
+        }
+        catch (e) {
+            this.events.emit(ClusterCleanupEvents.error, e);
+            return [];
+        }
+    }
+
+    private async getAllTasksFor(cluster: string): Promise<string[]>{
+        try {
+            const listTasksResponse = await this.ecs.listTasks({ cluster }).promise();
+            return listTasksResponse.taskArns;
+        }
+        catch (e) {
+            this.events.emit(ClusterCleanupEvents.error, e);
+            return [];
+        }
+    }
+
+    private async stopTasks(cluster: string, taskArns: string[]): Promise<ECS.Task[]> {
+        try {
+            const reason = 'Cluster being deleted';
+            const stopTaskResponses = await Promise.all(taskArns.map(
+                task => this.ecs.stopTask({ task, cluster, reason }).promise()
+            ));
+            return stopTaskResponses.map(r => r.task);
         }
         catch (e) {
             this.events.emit(ClusterCleanupEvents.error, e);

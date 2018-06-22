@@ -13,6 +13,8 @@ export enum ClusterCleanupEvents {
     stackFound = 'ClusterCleanup.stackFound',
     servicesFound = 'ClusterCleanup.servicesFound',
     servicesScaledDown = 'ClusterCleanup.servicesScaledDown',
+    tasksFound = 'ClusterCleanup.tasksFound',
+    tasksStopped = 'ClusterCleanup.tasksStopped',
     servicesDeleted = 'ClusterCleanup.servicesDeleted',
     instancesFound = 'ClusterCleanup.instancesFound',
     instancesDeregistered = 'ECSCluserManager.instancesDeregistered',
@@ -61,6 +63,16 @@ export class ClusterCleanupEventEmitter {
     public onServicesScaledDown(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction {
         this.events.addListener(ClusterCleanupEvents.servicesScaledDown, l);
         return () => { this.events.removeListener(ClusterCleanupEvents.servicesScaledDown, l); };
+    }
+
+    public onTasksFound(l: Listener<string[]>): RemoveListenerFunction {
+        this.events.addListener(ClusterCleanupEvents.tasksFound, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.tasksFound, l); };
+    }
+
+    public onTasksStopped(l: Listener<ECSTypes.Task[]>): RemoveListenerFunction {
+        this.events.addListener(ClusterCleanupEvents.tasksStopped, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.tasksStopped, l); };
     }
 
     public onInstancesFound(l: Listener<string[]>): RemoveListenerFunction {

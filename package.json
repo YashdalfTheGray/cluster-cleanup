@@ -31,7 +31,9 @@
     "typescript": "~2.8.3"
   },
   "dependencies": {
-    "aws-sdk": "~2.226.1"
+    "@types/lodash": "^4.14.110",
+    "aws-sdk": "~2.226.1",
+    "lodash": "^4.17.10"
   },
   "engines": {
     "node": ">=8.6.x",

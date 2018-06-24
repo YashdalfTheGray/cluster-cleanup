@@ -19,6 +19,8 @@ export declare class ClusterCleanup {
     private describeStack(cluster);
     private getAllServicesFor(cluster);
     private scaleServicesToZero(cluster, serviceArns);
+    private getAllTasksFor(cluster);
+    private stopTasks(cluster, taskArns);
     private getAllInstancesFor(cluster);
     private deregisterContainerInstances(cluster, instances);
     private deleteAllServices(cluster, services);

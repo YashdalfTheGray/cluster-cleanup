@@ -5,11 +5,14 @@ var ClusterCleanupEvents;
 (function (ClusterCleanupEvents) {
     ClusterCleanupEvents["start"] = "ClusterCleanup.start";
     ClusterCleanupEvents["done"] = "ClusterCleanup.done";
+    ClusterCleanupEvents["doneWithError"] = "ClusterCleanup.doneWithError";
     ClusterCleanupEvents["error"] = "ClusterCleanup.error";
     ClusterCleanupEvents["stackFound"] = "ClusterCleanup.stackFound";
     ClusterCleanupEvents["servicesFound"] = "ClusterCleanup.servicesFound";
     ClusterCleanupEvents["servicesScaledDown"] = "ClusterCleanup.servicesScaledDown";
     ClusterCleanupEvents["servicesDeleted"] = "ClusterCleanup.servicesDeleted";
+    ClusterCleanupEvents["tasksFound"] = "ClusterCleanup.tasksFound";
+    ClusterCleanupEvents["tasksStopped"] = "ClusterCleanup.tasksStopped";
     ClusterCleanupEvents["instancesFound"] = "ClusterCleanup.instancesFound";
     ClusterCleanupEvents["instancesDeregistered"] = "ECSCluserManager.instancesDeregistered";
     ClusterCleanupEvents["stackDeletionStarted"] = "ClusterCleanup.stackDeletionStarted";
@@ -48,6 +51,18 @@ class ClusterCleanupEventEmitter {
         this.events.addListener(ClusterCleanupEvents.servicesScaledDown, l);
         return () => { this.events.removeListener(ClusterCleanupEvents.servicesScaledDown, l); };
     }
+    onServicesDeleted(l) {
+        this.events.addListener(ClusterCleanupEvents.servicesDeleted, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.servicesDeleted, l); };
+    }
+    onTasksFound(l) {
+        this.events.addListener(ClusterCleanupEvents.tasksFound, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.tasksFound, l); };
+    }
+    onTasksStopped(l) {
+        this.events.addListener(ClusterCleanupEvents.tasksStopped, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.tasksStopped, l); };
+    }
     onInstancesFound(l) {
         this.events.addListener(ClusterCleanupEvents.instancesFound, l);
         return () => { this.events.removeListener(ClusterCleanupEvents.instancesFound, l); };
@@ -75,6 +90,10 @@ class ClusterCleanupEventEmitter {
     onDone(l) {
         this.events.addListener(ClusterCleanupEvents.done, l);
         return () => { this.events.removeListener(ClusterCleanupEvents.done, l); };
+    }
+    onDoneWithError(l) {
+        this.events.addListener(ClusterCleanupEvents.doneWithError, l);
+        return () => { this.events.removeListener(ClusterCleanupEvents.doneWithError, l); };
     }
     onError(l) {
         this.events.addListener(ClusterCleanupEvents.error, l);

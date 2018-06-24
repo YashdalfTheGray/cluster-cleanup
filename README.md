@@ -10,6 +10,8 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 1. Find CloudFormation stack
 1. Find all services
 1. Scale all services down to 0
+1. Find all running tasks
+1. Stop all running tasks
 1. Find all container instances
 1. Deregister all container instances
 1. Delete all services
@@ -47,6 +49,8 @@ The `events` instance returned from the `.deleteClusterAndResrouces()` call inhe
 | `stackFound`            | `stack: CloudFormation.Stack`        | `onStackFound`            |
 | `servicesFound`         | `serviceArns: string[]`              | `onServicesFound`         |
 | `servicesScaledDown`    | `services: ECS.Service[]`            | `onServicesScaledDown`    |
+| `tasksFound`            | `taskArns: string[]`                 | `onTasksFound`            |
+| `tasksStopped`          | `tasks: ECS.Task[]`                  | `onTasksStopped`          |
 | `instancesFound`        | `instanceArns: string[]`             | `onInstancesFound`        |
 | `instancesDeregistered` | `instances: ECS.ContainerInstance[]` | `onInstancesDeregistered` |
 | `stackDeletionStarted`  | `stackId: string`                    | `onStackDeletionStarted`  |
@@ -55,6 +59,7 @@ The `events` instance returned from the `.deleteClusterAndResrouces()` call inhe
 | `clusterDeleted`        | `cluster: ECS.Cluster`               | `onClusterDeleted`        |
 | `done`                  | `clusterName: string`                | `onDone`                  |
 | `error`                 | `error: Error`                       | `onError`                 |
+| `doneWithError`         | `error: Error`                       | `onDoneWithError`         |
 
 For example, to listen for when the CloudFormation stack is deleted,
 

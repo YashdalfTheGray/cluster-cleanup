@@ -4,3 +4,4 @@ src/**/*.ts
 tsconfig.json
 .vscode/*
 test.js
+ava.config.js

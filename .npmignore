@@ -2,3 +2,5 @@ src/**/*.ts
 .github/**/*
 .travis.yml
 tsconfig.json
+.vscode/*
+test.js

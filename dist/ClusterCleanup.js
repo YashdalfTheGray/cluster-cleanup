@@ -35,12 +35,12 @@ class ClusterCleanup {
         }
         this.events.emit(_1.ClusterCleanupEvents.start, cluster);
         if (!(await this.doesClusterExist(cluster))) {
-            this.events.emit(_1.ClusterCleanupEvents.error, new Error(`Cluster ${cluster} does not exist in the region specified`));
-            this.events.emit(_1.ClusterCleanupEvents.done, cluster);
+            this.events.emit(_1.ClusterCleanupEvents.doneWithError, new Error(`Cluster ${cluster} does not exist in the region specified`));
             return;
         }
         let services;
         let instances;
+        let tasks;
         const stack = await this.describeStack(cluster);
         if (stack) {
             this.events.emit(_1.ClusterCleanupEvents.stackFound, stack);
@@ -50,6 +50,12 @@ class ClusterCleanup {
             this.events.emit(_1.ClusterCleanupEvents.servicesFound, foundServices);
             services = await this.scaleServicesToZero(cluster, foundServices);
             this.events.emit(_1.ClusterCleanupEvents.servicesScaledDown, services);
+        }
+        const foundTasks = await this.getAllTasksFor(cluster);
+        if (foundTasks.length > 0) {
+            this.events.emit(_1.ClusterCleanupEvents.tasksFound, foundTasks);
+            tasks = await this.stopTasks(cluster, foundTasks);
+            this.events.emit(_1.ClusterCleanupEvents.tasksStopped, tasks);
         }
         const foundInstances = await this.getAllInstancesFor(cluster);
         if (foundInstances.length > 0) {
@@ -72,8 +78,8 @@ class ClusterCleanup {
                 this.events.emit(_1.ClusterCleanupEvents.done, cluster);
             }
             catch (e) {
-                this.events.emit(_1.ClusterCleanupEvents.error, e.message);
-                this.events.emit(_1.ClusterCleanupEvents.done, cluster);
+                this.events.emit(_1.ClusterCleanupEvents.doneWithError, e);
+                return;
             }
         }
         else {
@@ -138,6 +144,27 @@ class ClusterCleanup {
             return scaleServiceResponses.reduce((acc, r) => {
                 return acc.concat(r.service);
             }, []);
+        }
+        catch (e) {
+            this.events.emit(_1.ClusterCleanupEvents.error, e);
+            return [];
+        }
+    }
+    async getAllTasksFor(cluster) {
+        try {
+            const listTasksResponse = await this.ecs.listTasks({ cluster }).promise();
+            return listTasksResponse.taskArns;
+        }
+        catch (e) {
+            this.events.emit(_1.ClusterCleanupEvents.error, e);
+            return [];
+        }
+    }
+    async stopTasks(cluster, taskArns) {
+        try {
+            const reason = 'Cluster being deleted';
+            const stopTaskResponses = await Promise.all(taskArns.map(task => this.ecs.stopTask({ task, cluster, reason }).promise()));
+            return stopTaskResponses.map(r => r.task);
         }
         catch (e) {
             this.events.emit(_1.ClusterCleanupEvents.error, e);
@@ -260,8 +287,7 @@ class ClusterCleanup {
             return response.cluster;
         }
         catch (e) {
-            this.events.emit(_1.ClusterCleanupEvents.error, e);
-            return e;
+            this.events.emit(_1.ClusterCleanupEvents.doneWithError, e);
         }
     }
 }

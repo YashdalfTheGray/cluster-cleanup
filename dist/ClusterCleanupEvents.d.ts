@@ -5,11 +5,14 @@ export declare type RemoveListenerFunction = () => void;
 export declare enum ClusterCleanupEvents {
     start = "ClusterCleanup.start",
     done = "ClusterCleanup.done",
+    doneWithError = "ClusterCleanup.doneWithError",
     error = "ClusterCleanup.error",
     stackFound = "ClusterCleanup.stackFound",
     servicesFound = "ClusterCleanup.servicesFound",
     servicesScaledDown = "ClusterCleanup.servicesScaledDown",
     servicesDeleted = "ClusterCleanup.servicesDeleted",
+    tasksFound = "ClusterCleanup.tasksFound",
+    tasksStopped = "ClusterCleanup.tasksStopped",
     instancesFound = "ClusterCleanup.instancesFound",
     instancesDeregistered = "ECSCluserManager.instancesDeregistered",
     stackDeletionStarted = "ClusterCleanup.stackDeletionStarted",
@@ -27,6 +30,9 @@ export declare class ClusterCleanupEventEmitter {
     onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction;
     onServicesFound(l: Listener<string[]>): RemoveListenerFunction;
     onServicesScaledDown(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction;
+    onServicesDeleted(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction;
+    onTasksFound(l: Listener<string[]>): RemoveListenerFunction;
+    onTasksStopped(l: Listener<ECSTypes.Task[]>): RemoveListenerFunction;
     onInstancesFound(l: Listener<string[]>): RemoveListenerFunction;
     onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction;
     onStackDeletionStarted(l: Listener<string>): RemoveListenerFunction;
@@ -34,5 +40,6 @@ export declare class ClusterCleanupEventEmitter {
     onResourceDeleted(l: Listener<CloudformationTypes.StackEvent>): RemoveListenerFunction;
     onClusterDeleted(l: Listener<ECSTypes.Cluster>): RemoveListenerFunction;
     onDone(l: Listener<string>): RemoveListenerFunction;
+    onDoneWithError(l: Listener<Error>): RemoveListenerFunction;
     onError(l: Listener<Error>): RemoveListenerFunction;
 }

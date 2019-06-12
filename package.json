@@ -25,15 +25,15 @@
   },
   "homepage": "https://github.com/YashdalfTheGray/cluster-cleanup#readme",
   "devDependencies": {
-    "@types/node": "~9.6.6",
-    "ava": "^1.0.0-beta.6",
-    "ts-node": "~6.1.1",
-    "typescript": "~2.8.3"
+    "@types/node": "^12.0.7",
+    "ava": "^2.0.0",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
   },
   "dependencies": {
-    "@types/lodash": "^4.14.110",
-    "aws-sdk": "~2.226.1",
-    "lodash": "^4.17.10"
+    "@types/lodash": "^4.14.134",
+    "aws-sdk": "^2.470.0",
+    "lodash": "^4.17.11"
   },
   "engines": {
     "node": ">=8.6.x",

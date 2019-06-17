@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.com/YashdalfTheGray/cluster-cleanup.svg?branch=master)](https://travis-ci.com/YashdalfTheGray/cluster-cleanup)
 
 # cluster-cleanup
+
 Library to fill the gap between the SDK and the CLI/Console for deleting an ECS cluster.
 
 ## What does this do?
@@ -28,11 +29,11 @@ const ClusterCleanup = require('cluster-cleanup');
 
 const clusterCleanup = new ClusterCleanup();
 
-(async() => {
-    const events = clusterCleanup.deleteClusterAndResources('default');
+async () => {
+  const events = clusterCleanup.deleteClusterAndResources('default');
 
-    events.onError(e => console.error(e));
-})
+  events.onError(e => console.error(e));
+};
 ```
 
 The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object but adds another optional property called `enableFargate`. This will make ClusterManager look for Fargate services in addition to EC2 services while deleting the cluster.
@@ -44,7 +45,7 @@ The `deleteClusterAndResources` function can optionally take an object with a si
 The `events` instance returned from the `.deleteClusterAndResrouces()` call inherits from the Node.js `EventEmitter` and adds methods to listen to all the possible events to increase discovery through the typings file. All the event listener functions return a function that can be called to remove the listener. The events, their methods and the data associated with the event is listed below.
 
 | Event                   | Data and Type                        | Listener Method           |
-|-------------------------|--------------------------------------|---------------------------|
+| ----------------------- | ------------------------------------ | ------------------------- |
 | `start`                 | `clusterName: string`                | `onStart`                 |
 | `stackFound`            | `stack: CloudFormation.Stack`        | `onStackFound`            |
 | `servicesFound`         | `serviceArns: string[]`              | `onServicesFound`         |
@@ -64,8 +65,8 @@ The `events` instance returned from the `.deleteClusterAndResrouces()` call inhe
 For example, to listen for when the CloudFormation stack is deleted,
 
 ```javascript
-const removeListener = events.onStackDeletionDone((stackId) => {
-    console.log(`Stack ${stackId} deleted!`);
+const removeListener = events.onStackDeletionDone(stackId => {
+  console.log(`Stack ${stackId} deleted!`);
 });
 
 // other code

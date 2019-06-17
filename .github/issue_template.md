@@ -1,28 +1,39 @@
 #### Related issues (if any)
+
 issue number/none
 
 #### Type of issue
+
 ✨Feature Request/🏭Optimization/🐛Bug Report
 
 #### Urgency
+
 💥Apocalyptic/🚑Urgent/⏰Normal/📆Whenever
 
-*If this is a feature request*
+_If this is a feature request_
+
 #### Describe feature
+
 What's your idea?
 
-*If this is an optimization*
+_If this is an optimization_
+
 #### Describe optimization
+
 What could we be doing better?
 
-*If this is a bug report*
+_If this is a bug report_
+
 #### Reproduction steps
+
 How do I get the bug to happen?
 
 #### Expected behavior
+
 What should happen normally?
 
 #### Actual behavior
+
 What happens instead?
 
 #### Debug Info

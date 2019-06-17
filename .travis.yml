@@ -4,18 +4,19 @@ git:
   depth: 3
 
 node_js:
-    - "node"
-    - "10"
-    - "8"
+  - 'node'
+  - '12'
+  - '10'
+  - '8'
 
 install:
-    - npm install
+  - npm install
 
 script:
-    - npm test
-    - npm run clean
-    - npm start
+  - npm test
+  - npm run clean
+  - npm start
 
 cache:
-    directories:
-        - "node_modules"
+  directories:
+    - 'node_modules'

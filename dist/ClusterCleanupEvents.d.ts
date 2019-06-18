@@ -18,7 +18,7 @@ export declare enum ClusterCleanupEvents {
     stackDeletionStarted = "ClusterCleanup.stackDeletionStarted",
     stackDeletionDone = "ClusterCleanup.stackDeletionDone",
     resourceDeleted = "ClusterCleanup.resourceDeleted",
-    clusterDeleted = "ClusterCleanup.clusterDeleted",
+    clusterDeleted = "ClusterCleanup.clusterDeleted"
 }
 export declare class ClusterCleanupEventEmitter {
     private events;

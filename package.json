@@ -5,7 +5,9 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "test": "ava",
+    "test": "nyc ava",
+    "test:no-coverage": "ava",
+    "open-coverage": "npx open coverage/index.html",
     "build": "tsc",
     "start": "npm run build",
     "clean": "npx rimraf dist/*.js dist/*.ts"
@@ -27,6 +29,7 @@
   "devDependencies": {
     "@types/node": "^14.0.27",
     "ava": "^3.11.1",
+    "nyc": "^15.1.0",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.7"
   },
@@ -42,6 +45,26 @@
     "require": [
       "ts-node/register"
     ]
+  },
+  "nyc": {
+    "include": [
+      "src/**/*.ts"
+    ],
+    "exclude": [
+      "src/**/*.spec.ts"
+    ],
+    "extension": [
+      ".ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "sourceMap": true,
+    "instrument": true
   },
   "engines": {
     "node": ">=8.6.x",

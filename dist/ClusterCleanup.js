@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ClusterCleanup = void 0;
 const ECS = require("aws-sdk/clients/ecs");
 const CloudFormation = require("aws-sdk/clients/cloudformation");
 const _1 = require(".");

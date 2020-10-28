@@ -6,6 +6,7 @@ tsconfig.json
 .vscode/*
 test.js
 ava.config.js
+.prettierrc
 
 # Logs
 logs

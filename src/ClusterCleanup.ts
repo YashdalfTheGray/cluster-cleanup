@@ -352,20 +352,19 @@ export class ClusterCleanup {
     }
   }
 
-  private pollCloudFormationForChanges(
+  private async pollCloudFormationForChanges(
     cluster: string,
     stack: Stack
-  ): Promise<any> {
+  ): ReturnType<typeof waitUntilStackDeleteComplete> {
     const TEN_MINUTES = 10 * 60;
     const pollTimer = this.setupCloudFormationPolling(cluster);
 
-    return waitUntilStackDeleteComplete(
+    const waiterResult = await waitUntilStackDeleteComplete(
       { client: this.cloudFormation, maxWaitTime: TEN_MINUTES },
       { StackName: stack.StackId }
-    ).then((waiterResult) => {
-      clearInterval(pollTimer);
-      return waiterResult.state;
-    });
+    );
+    clearInterval(pollTimer);
+    return waiterResult;
   }
 
   private setupCloudFormationPolling(cluster: string): NodeJS.Timer {

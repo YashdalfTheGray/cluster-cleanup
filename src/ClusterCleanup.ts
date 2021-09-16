@@ -1,20 +1,19 @@
 import {
-  ECS,
-  LaunchType,
-  ECSClientConfig,
-  Service,
-  ContainerInstance,
-  Task,
-  Cluster,
-} from '@aws-sdk/client-ecs';
-import {
   CloudFormation,
   Stack,
-  StackResource,
   StackEvent,
+  StackResource,
   waitUntilStackDeleteComplete,
 } from '@aws-sdk/client-cloudformation';
-
+import {
+  Cluster,
+  ContainerInstance,
+  ECS,
+  ECSClientConfig,
+  LaunchType,
+  Service,
+  Task,
+} from '@aws-sdk/client-ecs';
 import { ClusterCleanupEventEmitter, ClusterCleanupEvents } from '.';
 
 export interface ClusterCleanupConfig extends ECSClientConfig {

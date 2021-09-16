@@ -1,6 +1,6 @@
+import { Stack, StackEvent } from '@aws-sdk/client-cloudformation';
+import { Cluster, ContainerInstance, Service, Task } from '@aws-sdk/client-ecs';
 import { EventEmitter } from 'events';
-import { Types as ECSTypes } from 'aws-sdk/clients/ecs';
-import { Types as CloudformationTypes } from 'aws-sdk/clients/cloudformation';
 
 export type Listener<T> = (data: T) => void;
 export type RemoveListenerFunction = () => void;
@@ -21,7 +21,7 @@ export enum ClusterCleanupEvents {
   stackDeletionStarted = 'ClusterCleanup.stackDeletionStarted',
   stackDeletionDone = 'ClusterCleanup.stackDeletionDone',
   resourceDeleted = 'ClusterCleanup.resourceDeleted',
-  clusterDeleted = 'ClusterCleanup.clusterDeleted'
+  clusterDeleted = 'ClusterCleanup.clusterDeleted',
 }
 
 export class ClusterCleanupEventEmitter {
@@ -52,9 +52,7 @@ export class ClusterCleanupEventEmitter {
     };
   }
 
-  public onStackFound(
-    l: Listener<CloudformationTypes.Stack>
-  ): RemoveListenerFunction {
+  public onStackFound(l: Listener<Stack>): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.stackFound, l);
     return () => {
       this.events.removeListener(ClusterCleanupEvents.stackFound, l);
@@ -68,18 +66,14 @@ export class ClusterCleanupEventEmitter {
     };
   }
 
-  public onServicesScaledDown(
-    l: Listener<ECSTypes.Service[]>
-  ): RemoveListenerFunction {
+  public onServicesScaledDown(l: Listener<Service[]>): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.servicesScaledDown, l);
     return () => {
       this.events.removeListener(ClusterCleanupEvents.servicesScaledDown, l);
     };
   }
 
-  public onServicesDeleted(
-    l: Listener<ECSTypes.Service[]>
-  ): RemoveListenerFunction {
+  public onServicesDeleted(l: Listener<Service[]>): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.servicesDeleted, l);
     return () => {
       this.events.removeListener(ClusterCleanupEvents.servicesDeleted, l);
@@ -93,7 +87,7 @@ export class ClusterCleanupEventEmitter {
     };
   }
 
-  public onTasksStopped(l: Listener<ECSTypes.Task[]>): RemoveListenerFunction {
+  public onTasksStopped(l: Listener<Task[]>): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.tasksStopped, l);
     return () => {
       this.events.removeListener(ClusterCleanupEvents.tasksStopped, l);
@@ -108,7 +102,7 @@ export class ClusterCleanupEventEmitter {
   }
 
   public onInstancesDeregistered(
-    l: Listener<ECSTypes.ContainerInstance[]>
+    l: Listener<ContainerInstance[]>
   ): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.instancesDeregistered, l);
     return () => {
@@ -130,18 +124,14 @@ export class ClusterCleanupEventEmitter {
     };
   }
 
-  public onResourceDeleted(
-    l: Listener<CloudformationTypes.StackEvent>
-  ): RemoveListenerFunction {
+  public onResourceDeleted(l: Listener<StackEvent>): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.resourceDeleted, l);
     return () => {
       this.events.removeListener(ClusterCleanupEvents.resourceDeleted, l);
     };
   }
 
-  public onClusterDeleted(
-    l: Listener<ECSTypes.Cluster>
-  ): RemoveListenerFunction {
+  public onClusterDeleted(l: Listener<Cluster>): RemoveListenerFunction {
     this.events.addListener(ClusterCleanupEvents.clusterDeleted, l);
     return () => {
       this.events.removeListener(ClusterCleanupEvents.clusterDeleted, l);

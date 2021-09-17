@@ -1,5 +1,5 @@
-import { Types as ECSTypes } from 'aws-sdk/clients/ecs';
-import { Types as CloudformationTypes } from 'aws-sdk/clients/cloudformation';
+import { Stack, StackEvent } from '@aws-sdk/client-cloudformation';
+import { Cluster, ContainerInstance, Service, Task } from '@aws-sdk/client-ecs';
 export declare type Listener<T> = (data: T) => void;
 export declare type RemoveListenerFunction = () => void;
 export declare enum ClusterCleanupEvents {
@@ -27,18 +27,18 @@ export declare class ClusterCleanupEventEmitter {
     emit(event: string, ...data: any[]): boolean;
     removeAllListeners(event?: string): ClusterCleanupEventEmitter;
     onStart(l: Listener<string>): RemoveListenerFunction;
-    onStackFound(l: Listener<CloudformationTypes.Stack>): RemoveListenerFunction;
+    onStackFound(l: Listener<Stack>): RemoveListenerFunction;
     onServicesFound(l: Listener<string[]>): RemoveListenerFunction;
-    onServicesScaledDown(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction;
-    onServicesDeleted(l: Listener<ECSTypes.Service[]>): RemoveListenerFunction;
+    onServicesScaledDown(l: Listener<Service[]>): RemoveListenerFunction;
+    onServicesDeleted(l: Listener<Service[]>): RemoveListenerFunction;
     onTasksFound(l: Listener<string[]>): RemoveListenerFunction;
-    onTasksStopped(l: Listener<ECSTypes.Task[]>): RemoveListenerFunction;
+    onTasksStopped(l: Listener<Task[]>): RemoveListenerFunction;
     onInstancesFound(l: Listener<string[]>): RemoveListenerFunction;
-    onInstancesDeregistered(l: Listener<ECSTypes.ContainerInstance[]>): RemoveListenerFunction;
+    onInstancesDeregistered(l: Listener<ContainerInstance[]>): RemoveListenerFunction;
     onStackDeletionStarted(l: Listener<string>): RemoveListenerFunction;
     onStackDeletionDone(l: Listener<string>): RemoveListenerFunction;
-    onResourceDeleted(l: Listener<CloudformationTypes.StackEvent>): RemoveListenerFunction;
-    onClusterDeleted(l: Listener<ECSTypes.Cluster>): RemoveListenerFunction;
+    onResourceDeleted(l: Listener<StackEvent>): RemoveListenerFunction;
+    onClusterDeleted(l: Listener<Cluster>): RemoveListenerFunction;
     onDone(l: Listener<string>): RemoveListenerFunction;
     onDoneWithError(l: Listener<Error>): RemoveListenerFunction;
     onError(l: Listener<Error>): RemoveListenerFunction;

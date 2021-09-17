@@ -1,10 +1,35 @@
-import * as ECS from 'aws-sdk/clients/ecs';
-import * as CloudFormation from 'aws-sdk/clients/cloudformation';
-import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
-
+import {
+  CloudFormation,
+  Stack,
+  StackEvent,
+  StackResource,
+  waitUntilStackDeleteComplete,
+  DescribeStacksCommand,
+  DescribeStackResourcesCommand,
+  DeleteStackCommand,
+  DescribeStackEventsCommand,
+} from '@aws-sdk/client-cloudformation';
+import {
+  Cluster,
+  ContainerInstance,
+  ECS,
+  ECSClientConfig,
+  LaunchType,
+  Service,
+  Task,
+  DescribeClustersCommand,
+  ListServicesCommand,
+  UpdateServiceCommand,
+  ListTasksCommand,
+  StopTaskCommand,
+  ListContainerInstancesCommand,
+  DeregisterContainerInstanceCommand,
+  DeleteServiceCommand,
+  DeleteClusterCommand,
+} from '@aws-sdk/client-ecs';
 import { ClusterCleanupEventEmitter, ClusterCleanupEvents } from '.';
 
-export interface ClusterCleanupConfig extends ServiceConfigurationOptions {
+export interface ClusterCleanupConfig extends ECSClientConfig {
   enableFargate?: boolean;
 }
 
@@ -13,7 +38,7 @@ export interface DeleteOptions {
 }
 
 export class ClusterCleanup {
-  private launchTypes: ECS.LaunchType[];
+  private launchTypes: LaunchType[];
   private ecs: ECS;
   private cloudFormation: CloudFormation;
   private events: ClusterCleanupEventEmitter;
@@ -21,11 +46,11 @@ export class ClusterCleanup {
   public constructor(config?: ClusterCleanupConfig) {
     this.ecs = new ECS(config);
     this.cloudFormation = new CloudFormation(config);
-    this.launchTypes = ['EC2'];
+    this.launchTypes = [LaunchType.EC2];
     this.events = new ClusterCleanupEventEmitter();
 
     if (config.enableFargate) {
-      this.launchTypes.push('FARGATE');
+      this.launchTypes.push(LaunchType.FARGATE);
     }
   }
 
@@ -51,7 +76,7 @@ export class ClusterCleanup {
     // 8. delete CloudFormation stack
     // 9. poll CloudFormation until stack deleted
     // 10. delete cluster
-    let startTime;
+    let startTime: number;
 
     if (options.verbose) {
       startTime = Date.now();
@@ -67,9 +92,9 @@ export class ClusterCleanup {
       return;
     }
 
-    let services: ECS.Service[];
-    let instances: ECS.ContainerInstance[];
-    let tasks: ECS.Task[];
+    let services: Service[];
+    let instances: ContainerInstance[];
+    let tasks: Task[];
 
     const stack = await this.describeStack(cluster);
     if (stack) {
@@ -101,7 +126,10 @@ export class ClusterCleanup {
     }
 
     if (foundServices.length > 0) {
-      await this.deleteAllServices(cluster, services.map(s => s.serviceName));
+      await this.deleteAllServices(
+        cluster,
+        services.map((s) => s.serviceName)
+      );
       this.events.emit(ClusterCleanupEvents.servicesDeleted, services);
     }
 
@@ -136,11 +164,10 @@ export class ClusterCleanup {
     }
   }
 
-  private async describeCluster(cluster: string): Promise<ECS.Cluster[]> {
+  private async describeCluster(cluster: string): Promise<Cluster[]> {
     try {
-      const response = await this.ecs
-        .describeClusters({ clusters: [cluster] })
-        .promise();
+      const command = new DescribeClustersCommand({ clusters: [cluster] });
+      const response = await this.ecs.send(command);
       return response.clusters;
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.error, e);
@@ -162,14 +189,12 @@ export class ClusterCleanup {
     }
   }
 
-  private async describeStack(cluster: string): Promise<CloudFormation.Stack> {
+  private async describeStack(cluster: string): Promise<Stack> {
     try {
-      const describeStackResponse = await this.cloudFormation
-        .describeStacks({
-          StackName: `EC2ContainerService-${cluster}`
-        })
-        .promise();
-
+      const command = new DescribeStacksCommand({
+        StackName: `EC2ContainerService-${cluster}`,
+      });
+      const describeStackResponse = await this.cloudFormation.send(command);
       return describeStackResponse.Stacks[0];
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.error, e);
@@ -180,8 +205,8 @@ export class ClusterCleanup {
   private async getAllServicesFor(cluster: string): Promise<string[]> {
     try {
       const listServiceResponses = await Promise.all(
-        this.launchTypes.map(l =>
-          this.ecs.listServices({ cluster, launchType: l }).promise()
+        this.launchTypes.map((l) =>
+          this.ecs.send(new ListServicesCommand({ cluster, launchType: l }))
         )
       );
 
@@ -197,13 +222,13 @@ export class ClusterCleanup {
   private async scaleServicesToZero(
     cluster: string,
     serviceArns: string[]
-  ): Promise<ECS.Services> {
+  ): Promise<Service[]> {
     try {
       const scaleServiceResponses = await Promise.all(
-        serviceArns.map(s =>
-          this.ecs
-            .updateService({ cluster, service: s, desiredCount: 0 })
-            .promise()
+        serviceArns.map((s) =>
+          this.ecs.send(
+            new UpdateServiceCommand({ cluster, service: s, desiredCount: 0 })
+          )
         )
       );
 
@@ -218,7 +243,8 @@ export class ClusterCleanup {
 
   private async getAllTasksFor(cluster: string): Promise<string[]> {
     try {
-      const listTasksResponse = await this.ecs.listTasks({ cluster }).promise();
+      const command = new ListTasksCommand({ cluster });
+      const listTasksResponse = await this.ecs.send(command);
       return listTasksResponse.taskArns;
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.error, e);
@@ -229,15 +255,15 @@ export class ClusterCleanup {
   private async stopTasks(
     cluster: string,
     taskArns: string[]
-  ): Promise<ECS.Task[]> {
+  ): Promise<Task[]> {
     try {
       const reason = 'Cluster being deleted';
       const stopTaskResponses = await Promise.all(
-        taskArns.map(task =>
-          this.ecs.stopTask({ task, cluster, reason }).promise()
+        taskArns.map((task) =>
+          this.ecs.send(new StopTaskCommand({ task, cluster, reason }))
         )
       );
-      return stopTaskResponses.map(r => r.task);
+      return stopTaskResponses.map((r) => r.task);
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.error, e);
       return [];
@@ -246,11 +272,9 @@ export class ClusterCleanup {
 
   private async getAllInstancesFor(cluster: string): Promise<string[]> {
     try {
-      const listInstanceResponse = await this.ecs
-        .listContainerInstances({
-          cluster
-        })
-        .promise();
+      const listInstanceResponse = await this.ecs.send(
+        new ListContainerInstancesCommand({ cluster })
+      );
 
       return listInstanceResponse.containerInstanceArns;
     } catch (e) {
@@ -262,17 +286,17 @@ export class ClusterCleanup {
   private async deregisterContainerInstances(
     cluster: string,
     instances: string[]
-  ): Promise<ECS.ContainerInstance[]> {
+  ): Promise<ContainerInstance[]> {
     try {
       const deregisterResponses = await Promise.all(
-        instances.map(i =>
-          this.ecs
-            .deregisterContainerInstance({
+        instances.map((i) =>
+          this.ecs.send(
+            new DeregisterContainerInstanceCommand({
               cluster,
               containerInstance: i,
-              force: true
+              force: true,
             })
-            .promise()
+          )
         )
       );
 
@@ -288,11 +312,11 @@ export class ClusterCleanup {
   private async deleteAllServices(
     cluster: string,
     services: string[]
-  ): Promise<ECS.Services> {
+  ): Promise<Service[]> {
     try {
       const deleteServicesResponses = await Promise.all(
-        services.map(service =>
-          this.ecs.deleteService({ cluster, service }).promise()
+        services.map((service) =>
+          this.ecs.send(new DeleteServiceCommand({ cluster, service }))
         )
       );
 
@@ -308,14 +332,14 @@ export class ClusterCleanup {
   private async describeStackResources(
     stackId: string,
     resourceId: string
-  ): Promise<CloudFormation.StackResource[]> {
+  ): Promise<StackResource[]> {
     try {
-      const describeResourceResponse = await this.cloudFormation
-        .describeStackResources({
+      const describeResourceResponse = await this.cloudFormation.send(
+        new DescribeStackResourcesCommand({
           StackName: stackId,
-          LogicalResourceId: resourceId
+          LogicalResourceId: resourceId,
         })
-        .promise();
+      );
 
       return describeResourceResponse.StackResources;
     } catch (e) {
@@ -326,11 +350,11 @@ export class ClusterCleanup {
 
   private async deleteStack(cluster: string): Promise<Object> {
     try {
-      const deleteStackResponse = await this.cloudFormation
-        .deleteStack({
-          StackName: `EC2ContainerService-${cluster}`
+      const deleteStackResponse = await this.cloudFormation.send(
+        new DeleteStackCommand({
+          StackName: `EC2ContainerService-${cluster}`,
         })
-        .promise();
+      );
 
       return deleteStackResponse;
     } catch (e) {
@@ -339,15 +363,13 @@ export class ClusterCleanup {
     }
   }
 
-  private async describeStackEvents(
-    cluster: string
-  ): Promise<CloudFormation.StackEvent[]> {
+  private async describeStackEvents(cluster: string): Promise<StackEvent[]> {
     try {
-      const describeStackEventsResponse = await this.cloudFormation
-        .describeStackEvents({
-          StackName: `EC2ContainerService-${cluster}`
+      const describeStackEventsResponse = await this.cloudFormation.send(
+        new DescribeStackEventsCommand({
+          StackName: `EC2ContainerService-${cluster}`,
         })
-        .promise();
+      );
 
       return describeStackEventsResponse.StackEvents;
     } catch (e) {
@@ -356,32 +378,19 @@ export class ClusterCleanup {
     }
   }
 
-  private pollCloudFormationForChanges(
+  private async pollCloudFormationForChanges(
     cluster: string,
-    stack: CloudFormation.Stack
-  ): Promise<any> {
-    const TEN_MINUTES = 10 * 60 * 1000;
-    let pollTimer, timeoutTimer;
+    stack: Stack
+  ): ReturnType<typeof waitUntilStackDeleteComplete> {
+    const TEN_MINUTES = 10 * 60;
+    const pollTimer = this.setupCloudFormationPolling(cluster);
 
-    pollTimer = this.setupCloudFormationPolling(cluster);
-
-    const timeoutPromise = new Promise((resolve, reject) => {
-      timeoutTimer = setTimeout(() => {
-        clearInterval(pollTimer);
-        reject(new Error('CloudFormation stack deletion timed out!'));
-      }, TEN_MINUTES);
-    });
-
-    const deletePromise = this.cloudFormation
-      .waitFor('stackDeleteComplete', { StackName: stack.StackId })
-      .promise()
-      .then(describeStacksResponse => {
-        clearInterval(pollTimer);
-        clearTimeout(timeoutTimer);
-        return describeStacksResponse.Stacks;
-      });
-
-    return Promise.race([deletePromise, timeoutPromise]);
+    const waiterResult = await waitUntilStackDeleteComplete(
+      { client: this.cloudFormation, maxWaitTime: TEN_MINUTES },
+      { StackName: stack.StackId }
+    );
+    clearInterval(pollTimer);
+    return waiterResult;
   }
 
   private setupCloudFormationPolling(cluster: string): NodeJS.Timer {
@@ -392,9 +401,9 @@ export class ClusterCleanup {
       try {
         const stackEvents = (await this.describeStackEvents(cluster)) || [];
         stackEvents
-          .filter(e => e.ResourceStatus === 'DELETE_COMPLETE')
-          .filter(e => !alreadyDeleted.includes(e.LogicalResourceId))
-          .forEach(e => {
+          .filter((e) => e.ResourceStatus === 'DELETE_COMPLETE')
+          .filter((e) => !alreadyDeleted.includes(e.LogicalResourceId))
+          .forEach((e) => {
             alreadyDeleted.push(e.LogicalResourceId);
             this.events.emit(ClusterCleanupEvents.resourceDeleted, e);
           });
@@ -406,9 +415,11 @@ export class ClusterCleanup {
     return setInterval(pollEvent, TEN_SECONDS);
   }
 
-  private async deleteCluster(cluster: string): Promise<ECS.Cluster> {
+  private async deleteCluster(cluster: string): Promise<Cluster> {
     try {
-      const response = await this.ecs.deleteCluster({ cluster }).promise();
+      const response = await this.ecs.send(
+        new DeleteClusterCommand({ cluster })
+      );
       return response.cluster;
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.doneWithError, e);

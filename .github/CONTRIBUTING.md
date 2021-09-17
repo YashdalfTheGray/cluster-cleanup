@@ -41,7 +41,9 @@ Great Bug Reports tend to have:
 - What actually happens
 - Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
 
-## Use a Consistent Coding Style
+## Use a Consistent Coding Style and Node.js Version
+
+The repository has an `.nvmrc` file so that the Node.js version is uniform across clones of this repository. If you use NVM, you can just run `nvm use` when you start in this directory. And since it is a plaintext file, you can read it and make sure that you're on the right version manually.
 
 The code follows the [Airbnb's Javascript guidelines](https://github.com/airbnb/javascript) with some changes that can be found in the `.eslintrc.json`.
 

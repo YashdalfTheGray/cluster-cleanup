@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/YashdalfTheGray/cluster-cleanup.svg?branch=master)](https://travis-ci.com/YashdalfTheGray/cluster-cleanup)
+[![Build and test](https://github.com/YashdalfTheGray/cluster-cleanup/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/YashdalfTheGray/cluster-cleanup/actions/workflows/build-and-test.yml)
 
 # cluster-cleanup
 
@@ -32,7 +32,7 @@ const clusterCleanup = new ClusterCleanup();
 async () => {
   const events = clusterCleanup.deleteClusterAndResources('default');
 
-  events.onError(e => console.error(e));
+  events.onError((e) => console.error(e));
 };
 ```
 
@@ -65,7 +65,7 @@ The `events` instance returned from the `.deleteClusterAndResrouces()` call inhe
 For example, to listen for when the CloudFormation stack is deleted,
 
 ```javascript
-const removeListener = events.onStackDeletionDone(stackId => {
+const removeListener = events.onStackDeletionDone((stackId) => {
   console.log(`Stack ${stackId} deleted!`);
 });
 

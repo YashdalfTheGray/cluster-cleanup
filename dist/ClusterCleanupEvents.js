@@ -22,6 +22,8 @@ var ClusterCleanupEvents;
     ClusterCleanupEvents["clusterDeleted"] = "ClusterCleanup.clusterDeleted";
 })(ClusterCleanupEvents = exports.ClusterCleanupEvents || (exports.ClusterCleanupEvents = {}));
 class ClusterCleanupEventEmitter {
+    events;
+    verbose;
     constructor(verbose = false) {
         this.events = new events_1.EventEmitter();
         this.verbose = verbose;

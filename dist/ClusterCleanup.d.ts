@@ -1,6 +1,6 @@
-import { ServiceConfigurationOptions } from 'aws-sdk/lib/service';
+import { ECSClientConfig } from '@aws-sdk/client-ecs';
 import { ClusterCleanupEventEmitter } from '.';
-export interface ClusterCleanupConfig extends ServiceConfigurationOptions {
+export interface ClusterCleanupConfig extends ECSClientConfig {
     enableFargate?: boolean;
 }
 export interface DeleteOptions {

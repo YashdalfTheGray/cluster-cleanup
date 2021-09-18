@@ -1,10 +1,10 @@
 # Project files
 
-src/**/\*.ts
-.github/**/_
+src/**/*.ts
+.github/**/*
 .travis.yml
 tsconfig.json
-.vscode/_
+.vscode/**/*
 test.js
 ava.config.js
 .prettierrc

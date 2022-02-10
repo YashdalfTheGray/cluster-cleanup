@@ -84,6 +84,12 @@ cleaner.eventEmitter.onStackDeletionStarted((stackId) => {
   console.log(`Started deleting stack with id ${stackId}`);
 });
 
+cleaner.eventEmitter.onResourceDeleted((resource) => {
+  console.log(
+    `Deleted ${resource.ResourceType} ${resource.PhysicalResourceId}`
+  );
+});
+
 cleaner.eventEmitter.onStackDeletionDone((stackId) => {
   console.log(`Deleted stack with id ${stackId}`);
 });

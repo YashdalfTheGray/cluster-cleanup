@@ -17,7 +17,7 @@ export enum ClusterCleanupEvents {
   tasksFound = 'ClusterCleanup.tasksFound',
   tasksStopped = 'ClusterCleanup.tasksStopped',
   instancesFound = 'ClusterCleanup.instancesFound',
-  instancesDeregistered = 'ECSCluserManager.instancesDeregistered',
+  instancesDeregistered = 'ClusterCleanup.instancesDeregistered',
   stackDeletionStarted = 'ClusterCleanup.stackDeletionStarted',
   stackDeletionDone = 'ClusterCleanup.stackDeletionDone',
   resourceDeleted = 'ClusterCleanup.resourceDeleted',

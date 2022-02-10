@@ -54,6 +54,10 @@ export class ClusterCleanup {
     }
   }
 
+  public get eventEmitter() {
+    return this.events;
+  }
+
   public deleteClusterAndResources(
     cluster: string,
     options: DeleteOptions = {}
@@ -65,7 +69,11 @@ export class ClusterCleanup {
     return this.events;
   }
 
-  private async deleteHelper(cluster: string, options: DeleteOptions) {
+  private async deleteHelper(
+    cluster: string,
+    stackName?: string,
+    options: DeleteOptions = {}
+  ) {
     // 1. find CloudFormation stack
     // 2. find all services
     // 3. batch scale all services down to 0
@@ -96,7 +104,7 @@ export class ClusterCleanup {
     let instances: ContainerInstance[];
     let tasks: Task[];
 
-    const stack = await this.describeStack(cluster);
+    const stack = await this.describeStack(cluster, stackName);
     if (stack) {
       this.events.emit(ClusterCleanupEvents.stackFound, stack);
     }
@@ -189,10 +197,13 @@ export class ClusterCleanup {
     }
   }
 
-  private async describeStack(cluster: string): Promise<Stack> {
+  private async describeStack(
+    cluster: string,
+    stackName: string
+  ): Promise<Stack> {
     try {
       const command = new DescribeStacksCommand({
-        StackName: `EC2ContainerService-${cluster}`,
+        StackName: stackName || `EC2ContainerService-${cluster}`,
       });
       const describeStackResponse = await this.cloudFormation.send(command);
       return describeStackResponse.Stacks[0];

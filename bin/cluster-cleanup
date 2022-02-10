@@ -101,3 +101,12 @@ cleaner.eventEmitter.onClusterDeleted((cluster) => {
 cleaner.eventEmitter.onDone((cluster) => {
   console.log(`Successfully cleaned up resources for cluster ${cluster}`);
 });
+
+process.on('exit', () => {
+  cleaner.eventEmitter.removeAllListeners();
+});
+
+cleaner.deleteClusterAndResources(
+  process.env.ECS_CLUSTER,
+  process.env.CFN_STACK_NAME
+);

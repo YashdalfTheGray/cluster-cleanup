@@ -1,0 +1,38 @@
+#!/usr/bin/env node
+
+import { upperFirst } from 'lodash';
+
+import { ClusterCleanup, ClusterCleanupEvents } from '../dist';
+
+[
+  'AWS_ACCESS_KEY_ID',
+  'AWS_SECRET_ACCESS_KEY',
+  'AWS_SESSION_TOKEN',
+  'AWS_DEFAULT_REGION',
+  'ECS_CLUSTER',
+].forEach((v) => {
+  if (!process.env[v]) {
+    throw new Error(`Missing environment variable: ${v}`);
+  }
+});
+
+const toMethodName = (event) => `on${upperFirst(event)}`;
+
+const cleaner = new ClusterCleanup({
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    sessionToken: process.env.AWS_SESSION_TOKEN,
+  },
+  region: process.env.AWS_DEFAULT_REGION,
+  enableFargate: true,
+});
+
+cleaner.eventEmitter.onDoneWithError((e) => {
+  console.error(e);
+  process.exit(1);
+});
+
+cleaner.eventEmitter.onStart(
+  (clusterName = console.log(`Starting cleanup of cluster ${clusterName}`))
+);

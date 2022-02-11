@@ -4,7 +4,6 @@
   "description": "Library to fill the gap between the SDK and the CLI/Console for deleting an ECS cluster",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "type": "module",
   "bin": {
     "cluster-cleanup": "bin/cluster-cleanup"
   },

@@ -12,6 +12,7 @@ export declare class ClusterCleanup {
     private cloudFormation;
     private events;
     constructor(config?: ClusterCleanupConfig);
+    get eventEmitter(): ClusterCleanupEventEmitter;
     deleteClusterAndResources(cluster: string, options?: DeleteOptions): ClusterCleanupEventEmitter;
     private deleteHelper;
     private describeCluster;

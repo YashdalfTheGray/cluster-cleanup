@@ -15,7 +15,7 @@ var ClusterCleanupEvents;
     ClusterCleanupEvents["tasksFound"] = "ClusterCleanup.tasksFound";
     ClusterCleanupEvents["tasksStopped"] = "ClusterCleanup.tasksStopped";
     ClusterCleanupEvents["instancesFound"] = "ClusterCleanup.instancesFound";
-    ClusterCleanupEvents["instancesDeregistered"] = "ECSCluserManager.instancesDeregistered";
+    ClusterCleanupEvents["instancesDeregistered"] = "ClusterCleanup.instancesDeregistered";
     ClusterCleanupEvents["stackDeletionStarted"] = "ClusterCleanup.stackDeletionStarted";
     ClusterCleanupEvents["stackDeletionDone"] = "ClusterCleanup.stackDeletionDone";
     ClusterCleanupEvents["resourceDeleted"] = "ClusterCleanup.resourceDeleted";

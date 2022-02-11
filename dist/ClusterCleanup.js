@@ -18,12 +18,15 @@ class ClusterCleanup {
             this.launchTypes.push(client_ecs_1.LaunchType.FARGATE);
         }
     }
+    get eventEmitter() {
+        return this.events;
+    }
     deleteClusterAndResources(cluster, options = {}) {
         this.events.verbose = options.verbose;
         setImmediate(this.deleteHelper.bind(this), cluster, options);
         return this.events;
     }
-    async deleteHelper(cluster, options) {
+    async deleteHelper(cluster, stackName, options = {}) {
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -46,7 +49,7 @@ class ClusterCleanup {
         let services;
         let instances;
         let tasks;
-        const stack = await this.describeStack(cluster);
+        const stack = await this.describeStack(cluster, stackName);
         if (stack) {
             this.events.emit(_1.ClusterCleanupEvents.stackFound, stack);
         }
@@ -119,10 +122,10 @@ class ClusterCleanup {
             return false;
         }
     }
-    async describeStack(cluster) {
+    async describeStack(cluster, stackName) {
         try {
             const command = new client_cloudformation_1.DescribeStacksCommand({
-                StackName: `EC2ContainerService-${cluster}`,
+                StackName: stackName || `EC2ContainerService-${cluster}`,
             });
             const describeStackResponse = await this.cloudFormation.send(command);
             return describeStackResponse.Stacks[0];
@@ -261,7 +264,7 @@ class ClusterCleanup {
         return waiterResult;
     }
     setupCloudFormationPolling(cluster) {
-        const TEN_SECONDS = 10 * 1000;
+        const THIRTY_SECONDS = 30 * 1000;
         const alreadyDeleted = [];
         const pollEvent = async () => {
             try {
@@ -278,7 +281,7 @@ class ClusterCleanup {
                 this.events.emit(_1.ClusterCleanupEvents.error, e);
             }
         };
-        return setInterval(pollEvent, TEN_SECONDS);
+        return setInterval(pollEvent, THIRTY_SECONDS);
     }
     async deleteCluster(cluster) {
         try {

@@ -33,7 +33,53 @@ export class ClusterCleanupEventEmitter {
     this.verbose = verbose;
   }
 
-  public emit(event: string, ...data: any[]): boolean {
+  public emit(event: ClusterCleanupEvents.start, cluster: string): boolean;
+  public emit(event: ClusterCleanupEvents.done, cluster: string): boolean;
+  public emit(event: ClusterCleanupEvents.doneWithError, err: Error): boolean;
+  public emit(event: ClusterCleanupEvents.error, err: Error): boolean;
+  public emit(event: ClusterCleanupEvents.stackFound, stack: Stack): boolean;
+  public emit(
+    event: ClusterCleanupEvents.servicesFound,
+    services: string[]
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.servicesScaledDown,
+    services: Service[]
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.servicesDeleted,
+    services: Service[]
+  ): boolean;
+  public emit(event: ClusterCleanupEvents.tasksFound, tasks: string[]): boolean;
+  public emit(event: ClusterCleanupEvents.tasksStopped, tasks: Task[]): boolean;
+  public emit(
+    event: ClusterCleanupEvents.instancesFound,
+    instances: string[]
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.instancesDeregistered,
+    instances: ContainerInstance[]
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.stackDeletionStarted,
+    stackId: string
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.stackDeletionDone,
+    stackId: string
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.clusterDeleted,
+    cluster: Cluster
+  ): boolean;
+  public emit(
+    event: ClusterCleanupEvents.resourceDeleted,
+    resource: StackEvent
+  ): boolean;
+  public emit<E extends ClusterCleanupEvents, D extends any[]>(
+    event: E,
+    ...data: D
+  ): boolean {
     if (this.verbose) {
       console.log(`Emitting event ${event}`);
     }

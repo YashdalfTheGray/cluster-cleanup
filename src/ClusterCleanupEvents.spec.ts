@@ -14,16 +14,19 @@ test('ClusterCleanupEventEmitter.removeAllListeners is fluent', (t) => {
   t.not(events.removeAllListeners().emit, undefined);
 });
 
-Object.keys(ClusterCleanupEvents)
-  .map((k) => toMethodName(k))
-  .forEach((m) => {
-    const events = new ClusterCleanupEventEmitter();
+test(`ClusterCleanupEventEmitter.on returns a listener remover`, (t) => {
+  const events = new ClusterCleanupEventEmitter();
 
-    test(`ClusterCleanupEventEmitter.${m} exists`, (t) => {
-      t.not(events[m], undefined);
-    });
+  t.is(typeof events.on(ClusterCleanupEvents.done, (_) => {}), 'function');
+});
 
-    test(`ClusterCleanupEventEmitter.${m} returns a listener remover`, (t) => {
-      t.is(typeof events[m](() => true), 'function');
-    });
+Object.keys(ClusterCleanupEvents).forEach((e) => {
+  const events = new ClusterCleanupEventEmitter();
+
+  test(`ClusterCleanupEventEmitter.on accepts ${e} as an event`, (t) => {
+    // this tests mostly serves as a typecheck test
+    const unregister = events.on(ClusterCleanupEvents[e], (_) => {});
+    t.truthy(unregister);
+    t.notThrows(() => unregister());
   });
+});

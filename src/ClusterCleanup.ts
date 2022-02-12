@@ -13,7 +13,6 @@ import {
   Cluster,
   ContainerInstance,
   ECS,
-  ECSClientConfig,
   LaunchType,
   Service,
   Task,
@@ -27,15 +26,13 @@ import {
   DeleteServiceCommand,
   DeleteClusterCommand,
 } from '@aws-sdk/client-ecs';
-import { ClusterCleanupEventEmitter, ClusterCleanupEvents } from '.';
 
-export interface ClusterCleanupConfig extends ECSClientConfig {
-  enableFargate?: boolean;
-}
-
-export interface DeleteOptions {
-  verbose?: boolean;
-}
+import {
+  ClusterCleanupEventEmitter,
+  ClusterCleanupEvents,
+  ClusterCleanupConfig,
+  DeleteOptions,
+} from '.';
 
 export class ClusterCleanup {
   private launchTypes: LaunchType[];

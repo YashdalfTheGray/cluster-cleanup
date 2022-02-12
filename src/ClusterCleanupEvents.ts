@@ -86,122 +86,82 @@ export class ClusterCleanupEventEmitter {
     return this.events.emit(event, ...data);
   }
 
+  public on(
+    event: ClusterCleanupEvents.start,
+    l: Listener<string>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.done,
+    l: Listener<string>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.doneWithError,
+    l: Listener<Error>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.error,
+    l: Listener<Error>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.stackFound,
+    l: Listener<Stack>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.servicesFound,
+    l: Listener<string[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.servicesScaledDown,
+    l: Listener<Service[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.servicesDeleted,
+    l: Listener<Service[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.tasksFound,
+    l: Listener<string[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.tasksStopped,
+    l: Listener<Task[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.instancesFound,
+    l: Listener<string[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.instancesDeregistered,
+    l: Listener<ContainerInstance[]>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.stackDeletionStarted,
+    l: Listener<string>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.stackDeletionDone,
+    l: Listener<string>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.clusterDeleted,
+    l: Listener<Cluster>
+  ): RemoveListenerFunction;
+  public on(
+    event: ClusterCleanupEvents.resourceDeleted,
+    l: Listener<StackEvent>
+  ): RemoveListenerFunction;
+  public on<E extends ClusterCleanupEvents, D extends any[]>(
+    event: E,
+    l: Listener<D>
+  ): RemoveListenerFunction {
+    this.events.addListener(event, l);
+    return () => {
+      this.events.removeListener(event, l);
+    };
+  }
+
   public removeAllListeners(event?: string): ClusterCleanupEventEmitter {
     this.events.removeAllListeners(event);
     return this;
-  }
-
-  public onStart(l: Listener<string>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.start, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.start, l);
-    };
-  }
-
-  public onStackFound(l: Listener<Stack>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.stackFound, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.stackFound, l);
-    };
-  }
-
-  public onServicesFound(l: Listener<string[]>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.servicesFound, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.servicesFound, l);
-    };
-  }
-
-  public onServicesScaledDown(l: Listener<Service[]>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.servicesScaledDown, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.servicesScaledDown, l);
-    };
-  }
-
-  public onServicesDeleted(l: Listener<Service[]>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.servicesDeleted, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.servicesDeleted, l);
-    };
-  }
-
-  public onTasksFound(l: Listener<string[]>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.tasksFound, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.tasksFound, l);
-    };
-  }
-
-  public onTasksStopped(l: Listener<Task[]>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.tasksStopped, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.tasksStopped, l);
-    };
-  }
-
-  public onInstancesFound(l: Listener<string[]>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.instancesFound, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.instancesFound, l);
-    };
-  }
-
-  public onInstancesDeregistered(
-    l: Listener<ContainerInstance[]>
-  ): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.instancesDeregistered, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.instancesDeregistered, l);
-    };
-  }
-
-  public onStackDeletionStarted(l: Listener<string>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.stackDeletionStarted, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.stackDeletionStarted, l);
-    };
-  }
-
-  public onStackDeletionDone(l: Listener<string>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.stackDeletionDone, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.stackDeletionDone, l);
-    };
-  }
-
-  public onResourceDeleted(l: Listener<StackEvent>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.resourceDeleted, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.resourceDeleted, l);
-    };
-  }
-
-  public onClusterDeleted(l: Listener<Cluster>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.clusterDeleted, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.clusterDeleted, l);
-    };
-  }
-
-  public onDone(l: Listener<string>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.done, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.done, l);
-    };
-  }
-
-  public onDoneWithError(l: Listener<Error>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.doneWithError, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.doneWithError, l);
-    };
-  }
-
-  public onError(l: Listener<Error>): RemoveListenerFunction {
-    this.events.addListener(ClusterCleanupEvents.error, l);
-    return () => {
-      this.events.removeListener(ClusterCleanupEvents.error, l);
-    };
   }
 }

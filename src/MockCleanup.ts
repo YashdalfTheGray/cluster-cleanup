@@ -143,18 +143,6 @@ export class MockCleanup {
     }
   }
 
-  private async pollCloudFormationForChanges(
-    cluster: string,
-    stack: Stack,
-    events: StackEvent[]
-  ) {}
-
-  private fakeDelay(millis: number) {
-    return new Promise((resolve) => {
-      setTimeout(resolve, millis);
-    });
-  }
-
   private randomFakeDelay(min: number, max: number) {
     return new Promise((resolve) => {
       setTimeout(resolve, Math.floor(Math.random() * (max - min + 1)) + min);

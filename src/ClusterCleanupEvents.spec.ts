@@ -1,12 +1,9 @@
 import test from 'ava';
-import { upperFirst } from 'lodash';
 
 import {
   ClusterCleanupEventEmitter,
   ClusterCleanupEvents,
 } from './ClusterCleanupEvents';
-
-const toMethodName = (event: string) => `on${upperFirst(event)}`;
 
 test('ClusterCleanupEventEmitter.removeAllListeners is fluent', (t) => {
   const events = new ClusterCleanupEventEmitter();

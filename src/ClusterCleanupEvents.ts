@@ -2,8 +2,7 @@ import { Stack, StackEvent } from '@aws-sdk/client-cloudformation';
 import { Cluster, ContainerInstance, Service, Task } from '@aws-sdk/client-ecs';
 import { EventEmitter } from 'events';
 
-export type Listener<T> = (data: T) => void;
-export type RemoveListenerFunction = () => void;
+import { Listener, RemoveListenerFunction } from './types';
 
 export enum ClusterCleanupEvents {
   start = 'ClusterCleanup.start',

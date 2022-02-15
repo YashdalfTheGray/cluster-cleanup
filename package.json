@@ -44,6 +44,11 @@
     "lodash": "~4.17.20"
   },
   "ava": {
+    "files": [
+      "src/**/*.spec.ts",
+      "test/**/*.spec.ts",
+      "!test/mocks/**/*.ts"
+    ],
     "extensions": [
       "ts"
     ],
@@ -56,7 +61,8 @@
       "src/**/*.ts"
     ],
     "exclude": [
-      "src/**/*.spec.ts"
+      "src/**/*.spec.ts",
+      "test/**/*.ts"
     ],
     "extension": [
       ".ts"

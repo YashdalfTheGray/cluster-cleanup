@@ -47,7 +47,12 @@ export default class MockCleanup {
   ): ClusterCleanupEventEmitter {
     this.events.verbose = options.verbose;
 
-    setImmediate(this.deleteHelper.bind(this), clusterName, options);
+    setImmediate(
+      this.deleteHelper.bind(this),
+      clusterName,
+      options.mock.stack.StackName,
+      options
+    );
 
     return this.events;
   }

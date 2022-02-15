@@ -1,11 +1,4 @@
-import { ECSClientConfig } from '@aws-sdk/client-ecs';
-import { ClusterCleanupEventEmitter } from '.';
-export interface ClusterCleanupConfig extends ECSClientConfig {
-    enableFargate?: boolean;
-}
-export interface DeleteOptions {
-    verbose?: boolean;
-}
+import { ClusterCleanupEventEmitter, ClusterCleanupConfig, DeleteOptions } from '.';
 export declare class ClusterCleanup {
     private launchTypes;
     private ecs;

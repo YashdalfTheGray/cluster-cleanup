@@ -34,105 +34,15 @@ class ClusterCleanupEventEmitter {
         }
         return this.events.emit(event, ...data);
     }
+    on(event, l) {
+        this.events.addListener(event, l);
+        return () => {
+            this.events.removeListener(event, l);
+        };
+    }
     removeAllListeners(event) {
         this.events.removeAllListeners(event);
         return this;
-    }
-    onStart(l) {
-        this.events.addListener(ClusterCleanupEvents.start, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.start, l);
-        };
-    }
-    onStackFound(l) {
-        this.events.addListener(ClusterCleanupEvents.stackFound, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.stackFound, l);
-        };
-    }
-    onServicesFound(l) {
-        this.events.addListener(ClusterCleanupEvents.servicesFound, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.servicesFound, l);
-        };
-    }
-    onServicesScaledDown(l) {
-        this.events.addListener(ClusterCleanupEvents.servicesScaledDown, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.servicesScaledDown, l);
-        };
-    }
-    onServicesDeleted(l) {
-        this.events.addListener(ClusterCleanupEvents.servicesDeleted, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.servicesDeleted, l);
-        };
-    }
-    onTasksFound(l) {
-        this.events.addListener(ClusterCleanupEvents.tasksFound, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.tasksFound, l);
-        };
-    }
-    onTasksStopped(l) {
-        this.events.addListener(ClusterCleanupEvents.tasksStopped, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.tasksStopped, l);
-        };
-    }
-    onInstancesFound(l) {
-        this.events.addListener(ClusterCleanupEvents.instancesFound, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.instancesFound, l);
-        };
-    }
-    onInstancesDeregistered(l) {
-        this.events.addListener(ClusterCleanupEvents.instancesDeregistered, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.instancesDeregistered, l);
-        };
-    }
-    onStackDeletionStarted(l) {
-        this.events.addListener(ClusterCleanupEvents.stackDeletionStarted, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.stackDeletionStarted, l);
-        };
-    }
-    onStackDeletionDone(l) {
-        this.events.addListener(ClusterCleanupEvents.stackDeletionDone, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.stackDeletionDone, l);
-        };
-    }
-    onResourceDeleted(l) {
-        this.events.addListener(ClusterCleanupEvents.resourceDeleted, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.resourceDeleted, l);
-        };
-    }
-    onClusterDeleted(l) {
-        this.events.addListener(ClusterCleanupEvents.clusterDeleted, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.clusterDeleted, l);
-        };
-    }
-    onDone(l) {
-        this.events.addListener(ClusterCleanupEvents.done, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.done, l);
-        };
-    }
-    onDoneWithError(l) {
-        this.events.addListener(ClusterCleanupEvents.doneWithError, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.doneWithError, l);
-        };
-    }
-    onError(l) {
-        this.events.addListener(ClusterCleanupEvents.error, l);
-        return () => {
-            this.events.removeListener(ClusterCleanupEvents.error, l);
-        };
     }
 }
 exports.ClusterCleanupEventEmitter = ClusterCleanupEventEmitter;

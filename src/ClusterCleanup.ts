@@ -2,10 +2,8 @@ import {
   CloudFormation,
   Stack,
   StackEvent,
-  StackResource,
   waitUntilStackDeleteComplete,
   DescribeStacksCommand,
-  DescribeStackResourcesCommand,
   DeleteStackCommand,
   DescribeStackEventsCommand,
 } from '@aws-sdk/client-cloudformation';
@@ -331,25 +329,6 @@ export class ClusterCleanup {
       return deleteServicesResponses.reduce((acc, r) => {
         return acc.concat(r.service);
       }, []);
-    } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
-      return [];
-    }
-  }
-
-  private async describeStackResources(
-    stackId: string,
-    resourceId: string
-  ): Promise<StackResource[]> {
-    try {
-      const describeResourceResponse = await this.cloudFormation.send(
-        new DescribeStackResourcesCommand({
-          StackName: stackId,
-          LogicalResourceId: resourceId,
-        })
-      );
-
-      return describeResourceResponse.StackResources;
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.error, e);
       return [];

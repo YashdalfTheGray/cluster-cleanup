@@ -36,13 +36,13 @@ import {
 
 export class ClusterCleanup {
   private launchTypes: LaunchType[];
-  private ecs: ECS;
-  private cloudFormation: CloudFormation;
   private events: ClusterCleanupEventEmitter;
 
-  public constructor(config?: ClusterCleanupConfig) {
-    this.ecs = new ECS(config);
-    this.cloudFormation = new CloudFormation(config);
+  public constructor(
+    config?: ClusterCleanupConfig,
+    private ecs: ECS = new ECS(config),
+    private cloudFormation = new CloudFormation(config)
+  ) {
     this.launchTypes = [LaunchType.EC2];
     this.events = new ClusterCleanupEventEmitter();
 

@@ -24,6 +24,7 @@ import {
   DeleteServiceCommand,
   DeleteClusterCommand,
 } from '@aws-sdk/client-ecs';
+import { WaiterState } from '@aws-sdk/util-waiter';
 
 import {
   ClusterCleanupEventEmitter,
@@ -54,10 +55,10 @@ export class ClusterCleanup {
     clusterName: string,
     stackName = `EC2ContainerService-${clusterName}`,
     options: DeleteOptions = {}
-  ) {
+  ): Promise<string[]> {
     this.events.verbose = options.verbose;
 
-    this.deleteHelper(clusterName, stackName, options);
+    return this.deleteHelper(clusterName, stackName, options);
   }
 
   private async deleteHelper(
@@ -68,7 +69,9 @@ export class ClusterCleanup {
       pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
       pollTimeoutMs: this.TEN_MINUTES_IN_MS,
     }
-  ) {
+  ): Promise<string[]> {
+    const cleanedUpResources = [];
+
     // 1. find CloudFormation stack
     // 2. find all services
     // 3. batch scale all services down to 0
@@ -118,6 +121,7 @@ export class ClusterCleanup {
       this.events.emit(ClusterCleanupEvents.tasksFound, foundTasks);
       tasks = await this.stopTasks(clusterName, foundTasks);
       this.events.emit(ClusterCleanupEvents.tasksStopped, tasks);
+      cleanedUpResources.push(...tasks.map((t) => t.taskArn));
     }
 
     const foundInstances = await this.getAllInstancesFor(clusterName);
@@ -128,6 +132,7 @@ export class ClusterCleanup {
         foundInstances
       );
       this.events.emit(ClusterCleanupEvents.instancesDeregistered, instances);
+      cleanedUpResources.push(...instances.map((i) => i.containerInstanceArn));
     }
 
     if (foundServices.length > 0) {
@@ -136,6 +141,7 @@ export class ClusterCleanup {
         services.map((s) => s.serviceName)
       );
       this.events.emit(ClusterCleanupEvents.servicesDeleted, services);
+      cleanedUpResources.push(...services.map((s) => s.serviceArn));
     }
 
     if (stack) {
@@ -146,16 +152,29 @@ export class ClusterCleanup {
       );
 
       try {
-        await this.pollCloudFormationForChanges(
+        const pollTimer = this.setupCloudFormationPolling(
           clusterName,
-          stack,
-          options.pollTimeoutMs,
-          options.pollIntervalMs
+          options.pollIntervalMs,
+          cleanedUpResources
         );
+
+        const result = await this.waitForStackDeletion(
+          stack,
+          options.pollTimeoutMs
+        );
+
+        if (result.state !== WaiterState.SUCCESS) {
+          clearInterval(pollTimer);
+          throw new Error(result.reason);
+        }
+
         this.events.emit(ClusterCleanupEvents.stackDeletionDone, stack.StackId);
+        cleanedUpResources.push(stack.StackId);
+        clearInterval(pollTimer);
 
         const deletedCluster = await this.deleteCluster(clusterName);
         this.events.emit(ClusterCleanupEvents.clusterDeleted, deletedCluster);
+        cleanedUpResources.push(deletedCluster.clusterArn);
         this.events.emit(ClusterCleanupEvents.done, clusterName);
       } catch (e) {
         this.events.emit(ClusterCleanupEvents.doneWithError, e);
@@ -164,6 +183,7 @@ export class ClusterCleanup {
     } else {
       const deletedCluster = await this.deleteCluster(clusterName);
       this.events.emit(ClusterCleanupEvents.clusterDeleted, deletedCluster);
+      cleanedUpResources.push(deletedCluster.clusterArn);
       this.events.emit(ClusterCleanupEvents.done, clusterName);
     }
 
@@ -174,6 +194,8 @@ export class ClusterCleanup {
         }s.`
       );
     }
+
+    return cleanedUpResources;
   }
 
   private async describeCluster(clusterName: string): Promise<Cluster[]> {
@@ -386,17 +408,10 @@ export class ClusterCleanup {
     }
   }
 
-  private async pollCloudFormationForChanges(
-    clusterName: string,
+  private async waitForStackDeletion(
     stack: Stack,
-    pollTimeoutInMs: number,
-    pollIntervalInMs: number
+    pollTimeoutInMs: number
   ): ReturnType<typeof waitUntilStackDeleteComplete> {
-    const pollTimer = this.setupCloudFormationPolling(
-      clusterName,
-      pollIntervalInMs
-    );
-
     const waiterResult = await waitUntilStackDeleteComplete(
       {
         client: this.cloudFormation,
@@ -404,13 +419,13 @@ export class ClusterCleanup {
       },
       { StackName: stack.StackId }
     );
-    clearInterval(pollTimer);
     return waiterResult;
   }
 
   private setupCloudFormationPolling(
     clusterName: string,
-    pollIntervalInMs: number
+    pollIntervalInMs: number,
+    collector = []
   ): NodeJS.Timer {
     const alreadyDeleted = [];
 
@@ -422,6 +437,7 @@ export class ClusterCleanup {
           .filter((e) => !alreadyDeleted.includes(e.LogicalResourceId))
           .forEach((e) => {
             alreadyDeleted.push(e.LogicalResourceId);
+            collector.push(e.PhysicalResourceId);
             this.events.emit(ClusterCleanupEvents.resourceDeleted, e);
           });
       } catch (e) {

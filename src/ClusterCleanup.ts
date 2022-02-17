@@ -50,19 +50,18 @@ export class ClusterCleanup {
     return this.events;
   }
 
-  public deleteClusterAndResources(
-    cluster: string,
+  public async deleteClusterAndResources(
+    clusterName: string,
+    stackName = `EC2ContainerService-${clusterName}`,
     options: DeleteOptions = {}
-  ): ClusterCleanupEventEmitter {
+  ) {
     this.events.verbose = options.verbose;
 
-    setImmediate(this.deleteHelper.bind(this), cluster, options);
-
-    return this.events;
+    this.deleteHelper(clusterName, stackName, options);
   }
 
   private async deleteHelper(
-    cluster: string,
+    clusterName: string,
     stackName?: string,
     options: DeleteOptions = {
       verbose: false,
@@ -86,12 +85,14 @@ export class ClusterCleanup {
       startTime = Date.now();
     }
 
-    this.events.emit(ClusterCleanupEvents.start, cluster);
+    this.events.emit(ClusterCleanupEvents.start, clusterName);
 
-    if (!(await this.doesClusterExist(cluster))) {
+    if (!(await this.doesClusterExist(clusterName))) {
       this.events.emit(
         ClusterCleanupEvents.doneWithError,
-        new Error(`Cluster ${cluster} does not exist in the region specified`)
+        new Error(
+          `Cluster ${clusterName} does not exist in the region specified`
+        )
       );
       return;
     }
@@ -100,30 +101,30 @@ export class ClusterCleanup {
     let instances: ContainerInstance[];
     let tasks: Task[];
 
-    const stack = await this.describeStack(cluster, stackName);
+    const stack = await this.describeStack(clusterName, stackName);
     if (stack) {
       this.events.emit(ClusterCleanupEvents.stackFound, stack);
     }
 
-    const foundServices = await this.getAllServicesFor(cluster);
+    const foundServices = await this.getAllServicesFor(clusterName);
     if (foundServices.length > 0) {
       this.events.emit(ClusterCleanupEvents.servicesFound, foundServices);
-      services = await this.scaleServicesToZero(cluster, foundServices);
+      services = await this.scaleServicesToZero(clusterName, foundServices);
       this.events.emit(ClusterCleanupEvents.servicesScaledDown, services);
     }
 
-    const foundTasks = await this.getAllTasksFor(cluster);
+    const foundTasks = await this.getAllTasksFor(clusterName);
     if (foundTasks.length > 0) {
       this.events.emit(ClusterCleanupEvents.tasksFound, foundTasks);
-      tasks = await this.stopTasks(cluster, foundTasks);
+      tasks = await this.stopTasks(clusterName, foundTasks);
       this.events.emit(ClusterCleanupEvents.tasksStopped, tasks);
     }
 
-    const foundInstances = await this.getAllInstancesFor(cluster);
+    const foundInstances = await this.getAllInstancesFor(clusterName);
     if (foundInstances.length > 0) {
       this.events.emit(ClusterCleanupEvents.instancesFound, foundInstances);
       instances = await this.deregisterContainerInstances(
-        cluster,
+        clusterName,
         foundInstances
       );
       this.events.emit(ClusterCleanupEvents.instancesDeregistered, instances);
@@ -131,14 +132,14 @@ export class ClusterCleanup {
 
     if (foundServices.length > 0) {
       await this.deleteAllServices(
-        cluster,
+        clusterName,
         services.map((s) => s.serviceName)
       );
       this.events.emit(ClusterCleanupEvents.servicesDeleted, services);
     }
 
     if (stack) {
-      await this.deleteStack(cluster);
+      await this.deleteStack(clusterName);
       this.events.emit(
         ClusterCleanupEvents.stackDeletionStarted,
         stack.StackId
@@ -146,36 +147,38 @@ export class ClusterCleanup {
 
       try {
         await this.pollCloudFormationForChanges(
-          cluster,
+          clusterName,
           stack,
           options.pollTimeoutMs,
           options.pollIntervalMs
         );
         this.events.emit(ClusterCleanupEvents.stackDeletionDone, stack.StackId);
 
-        const deletedCluster = await this.deleteCluster(cluster);
+        const deletedCluster = await this.deleteCluster(clusterName);
         this.events.emit(ClusterCleanupEvents.clusterDeleted, deletedCluster);
-        this.events.emit(ClusterCleanupEvents.done, cluster);
+        this.events.emit(ClusterCleanupEvents.done, clusterName);
       } catch (e) {
         this.events.emit(ClusterCleanupEvents.doneWithError, e);
         return;
       }
     } else {
-      const deletedCluster = await this.deleteCluster(cluster);
+      const deletedCluster = await this.deleteCluster(clusterName);
       this.events.emit(ClusterCleanupEvents.clusterDeleted, deletedCluster);
-      this.events.emit(ClusterCleanupEvents.done, cluster);
+      this.events.emit(ClusterCleanupEvents.done, clusterName);
     }
 
     if (options.verbose) {
       console.log(
-        `Deleting cluster ${cluster} took ${(Date.now() - startTime) / 1000}s.`
+        `Deleting cluster ${clusterName} took ${
+          (Date.now() - startTime) / 1000
+        }s.`
       );
     }
   }
 
-  private async describeCluster(cluster: string): Promise<Cluster[]> {
+  private async describeCluster(clusterName: string): Promise<Cluster[]> {
     try {
-      const command = new DescribeClustersCommand({ clusters: [cluster] });
+      const command = new DescribeClustersCommand({ clusters: [clusterName] });
       const response = await this.ecs.send(command);
       return response.clusters;
     } catch (e) {
@@ -184,13 +187,13 @@ export class ClusterCleanup {
     }
   }
 
-  private async doesClusterExist(cluster: string): Promise<boolean> {
+  private async doesClusterExist(clusterName: string): Promise<boolean> {
     try {
-      const clusters = await this.describeCluster(cluster);
+      const clusters = await this.describeCluster(clusterName);
       return (
         clusters
           .filter(({ status }) => status !== 'INACTIVE')
-          .filter(({ clusterName }) => clusterName === cluster).length !== 0
+          .filter(({ clusterName }) => clusterName === clusterName).length !== 0
       );
     } catch (e) {
       this.events.emit(ClusterCleanupEvents.error, e);
@@ -199,12 +202,12 @@ export class ClusterCleanup {
   }
 
   private async describeStack(
-    cluster: string,
+    clusterName: string,
     stackName: string
   ): Promise<Stack> {
     try {
       const command = new DescribeStacksCommand({
-        StackName: stackName || `EC2ContainerService-${cluster}`,
+        StackName: stackName || `EC2ContainerService-${clusterName}`,
       });
       const describeStackResponse = await this.cloudFormation.send(command);
       return describeStackResponse.Stacks[0];
@@ -214,11 +217,13 @@ export class ClusterCleanup {
     }
   }
 
-  private async getAllServicesFor(cluster: string): Promise<string[]> {
+  private async getAllServicesFor(clusterName: string): Promise<string[]> {
     try {
       const listServiceResponses = await Promise.all(
         this.launchTypes.map((l) =>
-          this.ecs.send(new ListServicesCommand({ cluster, launchType: l }))
+          this.ecs.send(
+            new ListServicesCommand({ cluster: clusterName, launchType: l })
+          )
         )
       );
 
@@ -232,14 +237,18 @@ export class ClusterCleanup {
   }
 
   private async scaleServicesToZero(
-    cluster: string,
+    clusterName: string,
     serviceArns: string[]
   ): Promise<Service[]> {
     try {
       const scaleServiceResponses = await Promise.all(
         serviceArns.map((s) =>
           this.ecs.send(
-            new UpdateServiceCommand({ cluster, service: s, desiredCount: 0 })
+            new UpdateServiceCommand({
+              cluster: clusterName,
+              service: s,
+              desiredCount: 0,
+            })
           )
         )
       );
@@ -253,9 +262,9 @@ export class ClusterCleanup {
     }
   }
 
-  private async getAllTasksFor(cluster: string): Promise<string[]> {
+  private async getAllTasksFor(clusterName: string): Promise<string[]> {
     try {
-      const command = new ListTasksCommand({ cluster });
+      const command = new ListTasksCommand({ cluster: clusterName });
       const listTasksResponse = await this.ecs.send(command);
       return listTasksResponse.taskArns;
     } catch (e) {
@@ -265,14 +274,16 @@ export class ClusterCleanup {
   }
 
   private async stopTasks(
-    cluster: string,
+    clusterName: string,
     taskArns: string[]
   ): Promise<Task[]> {
     try {
       const reason = 'Cluster being deleted';
       const stopTaskResponses = await Promise.all(
         taskArns.map((task) =>
-          this.ecs.send(new StopTaskCommand({ task, cluster, reason }))
+          this.ecs.send(
+            new StopTaskCommand({ task, cluster: clusterName, reason })
+          )
         )
       );
       return stopTaskResponses.map((r) => r.task);
@@ -282,10 +293,10 @@ export class ClusterCleanup {
     }
   }
 
-  private async getAllInstancesFor(cluster: string): Promise<string[]> {
+  private async getAllInstancesFor(clusterName: string): Promise<string[]> {
     try {
       const listInstanceResponse = await this.ecs.send(
-        new ListContainerInstancesCommand({ cluster })
+        new ListContainerInstancesCommand({ cluster: clusterName })
       );
 
       return listInstanceResponse.containerInstanceArns;
@@ -296,7 +307,7 @@ export class ClusterCleanup {
   }
 
   private async deregisterContainerInstances(
-    cluster: string,
+    clusterName: string,
     instances: string[]
   ): Promise<ContainerInstance[]> {
     try {
@@ -304,7 +315,7 @@ export class ClusterCleanup {
         instances.map((i) =>
           this.ecs.send(
             new DeregisterContainerInstanceCommand({
-              cluster,
+              cluster: clusterName,
               containerInstance: i,
               force: true,
             })
@@ -322,13 +333,15 @@ export class ClusterCleanup {
   }
 
   private async deleteAllServices(
-    cluster: string,
-    services: string[]
+    clusterName: string,
+    serviceNames: string[]
   ): Promise<Service[]> {
     try {
       const deleteServicesResponses = await Promise.all(
-        services.map((service) =>
-          this.ecs.send(new DeleteServiceCommand({ cluster, service }))
+        serviceNames.map((service) =>
+          this.ecs.send(
+            new DeleteServiceCommand({ cluster: clusterName, service })
+          )
         )
       );
 
@@ -341,11 +354,11 @@ export class ClusterCleanup {
     }
   }
 
-  private async deleteStack(cluster: string): Promise<Object> {
+  private async deleteStack(clusterName: string): Promise<Object> {
     try {
       const deleteStackResponse = await this.cloudFormation.send(
         new DeleteStackCommand({
-          StackName: `EC2ContainerService-${cluster}`,
+          StackName: `EC2ContainerService-${clusterName}`,
         })
       );
 
@@ -356,11 +369,13 @@ export class ClusterCleanup {
     }
   }
 
-  private async describeStackEvents(cluster: string): Promise<StackEvent[]> {
+  private async describeStackEvents(
+    clusterName: string
+  ): Promise<StackEvent[]> {
     try {
       const describeStackEventsResponse = await this.cloudFormation.send(
         new DescribeStackEventsCommand({
-          StackName: `EC2ContainerService-${cluster}`,
+          StackName: `EC2ContainerService-${clusterName}`,
         })
       );
 
@@ -372,13 +387,13 @@ export class ClusterCleanup {
   }
 
   private async pollCloudFormationForChanges(
-    cluster: string,
+    clusterName: string,
     stack: Stack,
     pollTimeoutInMs: number,
     pollIntervalInMs: number
   ): ReturnType<typeof waitUntilStackDeleteComplete> {
     const pollTimer = this.setupCloudFormationPolling(
-      cluster,
+      clusterName,
       pollIntervalInMs
     );
 
@@ -394,14 +409,14 @@ export class ClusterCleanup {
   }
 
   private setupCloudFormationPolling(
-    cluster: string,
+    clusterName: string,
     pollIntervalInMs: number
   ): NodeJS.Timer {
     const alreadyDeleted = [];
 
     const pollEvent = async () => {
       try {
-        const stackEvents = (await this.describeStackEvents(cluster)) || [];
+        const stackEvents = (await this.describeStackEvents(clusterName)) || [];
         stackEvents
           .filter((e) => e.ResourceStatus === 'DELETE_COMPLETE')
           .filter((e) => !alreadyDeleted.includes(e.LogicalResourceId))
@@ -417,10 +432,10 @@ export class ClusterCleanup {
     return setInterval(pollEvent, pollIntervalInMs);
   }
 
-  private async deleteCluster(cluster: string): Promise<Cluster> {
+  private async deleteCluster(clusterName: string): Promise<Cluster> {
     try {
       const response = await this.ecs.send(
-        new DeleteClusterCommand({ cluster })
+        new DeleteClusterCommand({ cluster: clusterName })
       );
       return response.cluster;
     } catch (e) {

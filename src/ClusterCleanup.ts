@@ -33,6 +33,9 @@ import {
 } from '.';
 
 export class ClusterCleanup {
+  private TEN_MINUTES_IN_MS = 10 * 60 * 1000;
+  private THIRTY_SECONDS_IN_MS = 30 * 1000;
+
   public constructor(
     config?: ClusterCleanupConfig,
     private ecs: ECS = new ECS(config),
@@ -61,7 +64,11 @@ export class ClusterCleanup {
   private async deleteHelper(
     cluster: string,
     stackName?: string,
-    options: DeleteOptions = {}
+    options: DeleteOptions = {
+      verbose: false,
+      pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
+      pollTimeoutMs: this.TEN_MINUTES_IN_MS,
+    }
   ) {
     // 1. find CloudFormation stack
     // 2. find all services
@@ -138,7 +145,12 @@ export class ClusterCleanup {
       );
 
       try {
-        await this.pollCloudFormationForChanges(cluster, stack);
+        await this.pollCloudFormationForChanges(
+          cluster,
+          stack,
+          options.pollTimeoutMs,
+          options.pollIntervalMs
+        );
         this.events.emit(ClusterCleanupEvents.stackDeletionDone, stack.StackId);
 
         const deletedCluster = await this.deleteCluster(cluster);
@@ -361,21 +373,30 @@ export class ClusterCleanup {
 
   private async pollCloudFormationForChanges(
     cluster: string,
-    stack: Stack
+    stack: Stack,
+    pollTimeoutInMs: number,
+    pollIntervalInMs: number
   ): ReturnType<typeof waitUntilStackDeleteComplete> {
-    const TEN_MINUTES = 10 * 60;
-    const pollTimer = this.setupCloudFormationPolling(cluster);
+    const pollTimer = this.setupCloudFormationPolling(
+      cluster,
+      pollIntervalInMs
+    );
 
     const waiterResult = await waitUntilStackDeleteComplete(
-      { client: this.cloudFormation, maxWaitTime: TEN_MINUTES },
+      {
+        client: this.cloudFormation,
+        maxWaitTime: Math.round(pollTimeoutInMs / 1000),
+      },
       { StackName: stack.StackId }
     );
     clearInterval(pollTimer);
     return waiterResult;
   }
 
-  private setupCloudFormationPolling(cluster: string): NodeJS.Timer {
-    const THIRTY_SECONDS = 30 * 1000;
+  private setupCloudFormationPolling(
+    cluster: string,
+    pollIntervalInMs: number
+  ): NodeJS.Timer {
     const alreadyDeleted = [];
 
     const pollEvent = async () => {
@@ -393,7 +414,7 @@ export class ClusterCleanup {
       }
     };
 
-    return setInterval(pollEvent, THIRTY_SECONDS);
+    return setInterval(pollEvent, pollIntervalInMs);
   }
 
   private async deleteCluster(cluster: string): Promise<Cluster> {

@@ -33,21 +33,15 @@ import {
 } from '.';
 
 export class ClusterCleanup {
-  private launchTypes: LaunchType[];
-  private events: ClusterCleanupEventEmitter;
-
   public constructor(
     config?: ClusterCleanupConfig,
     private ecs: ECS = new ECS(config),
-    private cloudFormation = new CloudFormation(config)
-  ) {
-    this.launchTypes = [LaunchType.EC2];
-    this.events = new ClusterCleanupEventEmitter();
-
-    if (config.enableFargate) {
-      this.launchTypes.push(LaunchType.FARGATE);
-    }
-  }
+    private cloudFormation = new CloudFormation(config),
+    private events = new ClusterCleanupEventEmitter(),
+    private launchTypes = [LaunchType.EC2].concat(
+      config.enableFargate ? [LaunchType.FARGATE] : []
+    )
+  ) {}
 
   public get eventEmitter() {
     return this.events;

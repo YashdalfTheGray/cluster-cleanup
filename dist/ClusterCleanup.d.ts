@@ -1,12 +1,16 @@
+import { CloudFormation } from '@aws-sdk/client-cloudformation';
+import { ECS, LaunchType } from '@aws-sdk/client-ecs';
 import { ClusterCleanupEventEmitter, ClusterCleanupConfig, DeleteOptions } from '.';
 export declare class ClusterCleanup {
-    private launchTypes;
     private ecs;
     private cloudFormation;
     private events;
-    constructor(config?: ClusterCleanupConfig);
+    private launchTypes;
+    private TEN_MINUTES_IN_MS;
+    private THIRTY_SECONDS_IN_MS;
+    constructor(config?: ClusterCleanupConfig, ecs?: ECS, cloudFormation?: CloudFormation, events?: ClusterCleanupEventEmitter, launchTypes?: LaunchType[]);
     get eventEmitter(): ClusterCleanupEventEmitter;
-    deleteClusterAndResources(cluster: string, options?: DeleteOptions): ClusterCleanupEventEmitter;
+    deleteClusterAndResources(clusterName: string, stackName?: string, options?: DeleteOptions): Promise<string[]>;
     private deleteHelper;
     private describeCluster;
     private doesClusterExist;
@@ -18,10 +22,9 @@ export declare class ClusterCleanup {
     private getAllInstancesFor;
     private deregisterContainerInstances;
     private deleteAllServices;
-    private describeStackResources;
     private deleteStack;
     private describeStackEvents;
-    private pollCloudFormationForChanges;
+    private waitForStackDeletion;
     private setupCloudFormationPolling;
     private deleteCluster;
 }

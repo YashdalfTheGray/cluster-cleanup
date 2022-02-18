@@ -3,30 +3,34 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClusterCleanup = void 0;
 const client_cloudformation_1 = require("@aws-sdk/client-cloudformation");
 const client_ecs_1 = require("@aws-sdk/client-ecs");
+const util_waiter_1 = require("@aws-sdk/util-waiter");
 const _1 = require(".");
 class ClusterCleanup {
-    launchTypes;
     ecs;
     cloudFormation;
     events;
-    constructor(config) {
-        this.ecs = new client_ecs_1.ECS(config);
-        this.cloudFormation = new client_cloudformation_1.CloudFormation(config);
-        this.launchTypes = [client_ecs_1.LaunchType.EC2];
-        this.events = new _1.ClusterCleanupEventEmitter();
-        if (config.enableFargate) {
-            this.launchTypes.push(client_ecs_1.LaunchType.FARGATE);
-        }
+    launchTypes;
+    TEN_MINUTES_IN_MS = 10 * 60 * 1000;
+    THIRTY_SECONDS_IN_MS = 30 * 1000;
+    constructor(config, ecs = new client_ecs_1.ECS(config), cloudFormation = new client_cloudformation_1.CloudFormation(config), events = new _1.ClusterCleanupEventEmitter(), launchTypes = [client_ecs_1.LaunchType.EC2].concat(config.enableFargate ? [client_ecs_1.LaunchType.FARGATE] : [])) {
+        this.ecs = ecs;
+        this.cloudFormation = cloudFormation;
+        this.events = events;
+        this.launchTypes = launchTypes;
     }
     get eventEmitter() {
         return this.events;
     }
-    deleteClusterAndResources(cluster, options = {}) {
+    async deleteClusterAndResources(clusterName, stackName = `EC2ContainerService-${clusterName}`, options = {}) {
         this.events.verbose = options.verbose;
-        setImmediate(this.deleteHelper.bind(this), cluster, options);
-        return this.events;
+        return this.deleteHelper(clusterName, stackName, options);
     }
-    async deleteHelper(cluster, stackName, options = {}) {
+    async deleteHelper(clusterName, stackName, options = {
+        verbose: false,
+        pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
+        pollTimeoutMs: this.TEN_MINUTES_IN_MS,
+    }) {
+        const cleanedUpResources = [];
         // 1. find CloudFormation stack
         // 2. find all services
         // 3. batch scale all services down to 0
@@ -41,49 +45,60 @@ class ClusterCleanup {
         if (options.verbose) {
             startTime = Date.now();
         }
-        this.events.emit(_1.ClusterCleanupEvents.start, cluster);
-        if (!(await this.doesClusterExist(cluster))) {
-            this.events.emit(_1.ClusterCleanupEvents.doneWithError, new Error(`Cluster ${cluster} does not exist in the region specified`));
+        this.events.emit(_1.ClusterCleanupEvents.start, clusterName);
+        if (!(await this.doesClusterExist(clusterName))) {
+            this.events.emit(_1.ClusterCleanupEvents.doneWithError, new Error(`Cluster ${clusterName} does not exist in the region specified`));
             return;
         }
         let services;
         let instances;
         let tasks;
-        const stack = await this.describeStack(cluster, stackName);
+        const stack = await this.describeStack(clusterName, stackName);
         if (stack) {
             this.events.emit(_1.ClusterCleanupEvents.stackFound, stack);
         }
-        const foundServices = await this.getAllServicesFor(cluster);
+        const foundServices = await this.getAllServicesFor(clusterName);
         if (foundServices.length > 0) {
             this.events.emit(_1.ClusterCleanupEvents.servicesFound, foundServices);
-            services = await this.scaleServicesToZero(cluster, foundServices);
+            services = await this.scaleServicesToZero(clusterName, foundServices);
             this.events.emit(_1.ClusterCleanupEvents.servicesScaledDown, services);
         }
-        const foundTasks = await this.getAllTasksFor(cluster);
+        const foundTasks = await this.getAllTasksFor(clusterName);
         if (foundTasks.length > 0) {
             this.events.emit(_1.ClusterCleanupEvents.tasksFound, foundTasks);
-            tasks = await this.stopTasks(cluster, foundTasks);
+            tasks = await this.stopTasks(clusterName, foundTasks);
             this.events.emit(_1.ClusterCleanupEvents.tasksStopped, tasks);
+            cleanedUpResources.push(...tasks.map((t) => t.taskArn));
         }
-        const foundInstances = await this.getAllInstancesFor(cluster);
+        const foundInstances = await this.getAllInstancesFor(clusterName);
         if (foundInstances.length > 0) {
             this.events.emit(_1.ClusterCleanupEvents.instancesFound, foundInstances);
-            instances = await this.deregisterContainerInstances(cluster, foundInstances);
+            instances = await this.deregisterContainerInstances(clusterName, foundInstances);
             this.events.emit(_1.ClusterCleanupEvents.instancesDeregistered, instances);
+            cleanedUpResources.push(...instances.map((i) => i.containerInstanceArn));
         }
         if (foundServices.length > 0) {
-            await this.deleteAllServices(cluster, services.map((s) => s.serviceName));
+            await this.deleteAllServices(clusterName, services.map((s) => s.serviceName));
             this.events.emit(_1.ClusterCleanupEvents.servicesDeleted, services);
+            cleanedUpResources.push(...services.map((s) => s.serviceArn));
         }
         if (stack) {
-            await this.deleteStack(cluster);
+            await this.deleteStack(clusterName);
             this.events.emit(_1.ClusterCleanupEvents.stackDeletionStarted, stack.StackId);
             try {
-                await this.pollCloudFormationForChanges(cluster, stack);
+                const pollTimer = this.setupCloudFormationPolling(clusterName, options.pollIntervalMs, cleanedUpResources);
+                const result = await this.waitForStackDeletion(stack, options.pollTimeoutMs);
+                if (result.state !== util_waiter_1.WaiterState.SUCCESS) {
+                    clearInterval(pollTimer);
+                    throw new Error(result.reason);
+                }
                 this.events.emit(_1.ClusterCleanupEvents.stackDeletionDone, stack.StackId);
-                const deletedCluster = await this.deleteCluster(cluster);
+                cleanedUpResources.push(stack.StackId);
+                clearInterval(pollTimer);
+                const deletedCluster = await this.deleteCluster(clusterName);
                 this.events.emit(_1.ClusterCleanupEvents.clusterDeleted, deletedCluster);
-                this.events.emit(_1.ClusterCleanupEvents.done, cluster);
+                cleanedUpResources.push(deletedCluster.clusterArn);
+                this.events.emit(_1.ClusterCleanupEvents.done, clusterName);
             }
             catch (e) {
                 this.events.emit(_1.ClusterCleanupEvents.doneWithError, e);
@@ -91,17 +106,19 @@ class ClusterCleanup {
             }
         }
         else {
-            const deletedCluster = await this.deleteCluster(cluster);
+            const deletedCluster = await this.deleteCluster(clusterName);
             this.events.emit(_1.ClusterCleanupEvents.clusterDeleted, deletedCluster);
-            this.events.emit(_1.ClusterCleanupEvents.done, cluster);
+            cleanedUpResources.push(deletedCluster.clusterArn);
+            this.events.emit(_1.ClusterCleanupEvents.done, clusterName);
         }
         if (options.verbose) {
-            console.log(`Deleting cluster ${cluster} took ${(Date.now() - startTime) / 1000}s.`);
+            console.log(`Deleting cluster ${clusterName} took ${(Date.now() - startTime) / 1000}s.`);
         }
+        return cleanedUpResources;
     }
-    async describeCluster(cluster) {
+    async describeCluster(clusterName) {
         try {
-            const command = new client_ecs_1.DescribeClustersCommand({ clusters: [cluster] });
+            const command = new client_ecs_1.DescribeClustersCommand({ clusters: [clusterName] });
             const response = await this.ecs.send(command);
             return response.clusters;
         }
@@ -110,22 +127,22 @@ class ClusterCleanup {
             return [];
         }
     }
-    async doesClusterExist(cluster) {
+    async doesClusterExist(clusterName) {
         try {
-            const clusters = await this.describeCluster(cluster);
+            const clusters = await this.describeCluster(clusterName);
             return (clusters
                 .filter(({ status }) => status !== 'INACTIVE')
-                .filter(({ clusterName }) => clusterName === cluster).length !== 0);
+                .filter(({ clusterName }) => clusterName === clusterName).length !== 0);
         }
         catch (e) {
             this.events.emit(_1.ClusterCleanupEvents.error, e);
             return false;
         }
     }
-    async describeStack(cluster, stackName) {
+    async describeStack(clusterName, stackName) {
         try {
             const command = new client_cloudformation_1.DescribeStacksCommand({
-                StackName: stackName || `EC2ContainerService-${cluster}`,
+                StackName: stackName || `EC2ContainerService-${clusterName}`,
             });
             const describeStackResponse = await this.cloudFormation.send(command);
             return describeStackResponse.Stacks[0];
@@ -135,9 +152,9 @@ class ClusterCleanup {
             return null;
         }
     }
-    async getAllServicesFor(cluster) {
+    async getAllServicesFor(clusterName) {
         try {
-            const listServiceResponses = await Promise.all(this.launchTypes.map((l) => this.ecs.send(new client_ecs_1.ListServicesCommand({ cluster, launchType: l }))));
+            const listServiceResponses = await Promise.all(this.launchTypes.map((l) => this.ecs.send(new client_ecs_1.ListServicesCommand({ cluster: clusterName, launchType: l }))));
             return listServiceResponses.reduce((acc, r) => {
                 return acc.concat(r.serviceArns);
             }, []);
@@ -147,9 +164,13 @@ class ClusterCleanup {
             return [];
         }
     }
-    async scaleServicesToZero(cluster, serviceArns) {
+    async scaleServicesToZero(clusterName, serviceArns) {
         try {
-            const scaleServiceResponses = await Promise.all(serviceArns.map((s) => this.ecs.send(new client_ecs_1.UpdateServiceCommand({ cluster, service: s, desiredCount: 0 }))));
+            const scaleServiceResponses = await Promise.all(serviceArns.map((s) => this.ecs.send(new client_ecs_1.UpdateServiceCommand({
+                cluster: clusterName,
+                service: s,
+                desiredCount: 0,
+            }))));
             return scaleServiceResponses.reduce((acc, r) => {
                 return acc.concat(r.service);
             }, []);
@@ -159,9 +180,9 @@ class ClusterCleanup {
             return [];
         }
     }
-    async getAllTasksFor(cluster) {
+    async getAllTasksFor(clusterName) {
         try {
-            const command = new client_ecs_1.ListTasksCommand({ cluster });
+            const command = new client_ecs_1.ListTasksCommand({ cluster: clusterName });
             const listTasksResponse = await this.ecs.send(command);
             return listTasksResponse.taskArns;
         }
@@ -170,10 +191,10 @@ class ClusterCleanup {
             return [];
         }
     }
-    async stopTasks(cluster, taskArns) {
+    async stopTasks(clusterName, taskArns) {
         try {
             const reason = 'Cluster being deleted';
-            const stopTaskResponses = await Promise.all(taskArns.map((task) => this.ecs.send(new client_ecs_1.StopTaskCommand({ task, cluster, reason }))));
+            const stopTaskResponses = await Promise.all(taskArns.map((task) => this.ecs.send(new client_ecs_1.StopTaskCommand({ task, cluster: clusterName, reason }))));
             return stopTaskResponses.map((r) => r.task);
         }
         catch (e) {
@@ -181,9 +202,9 @@ class ClusterCleanup {
             return [];
         }
     }
-    async getAllInstancesFor(cluster) {
+    async getAllInstancesFor(clusterName) {
         try {
-            const listInstanceResponse = await this.ecs.send(new client_ecs_1.ListContainerInstancesCommand({ cluster }));
+            const listInstanceResponse = await this.ecs.send(new client_ecs_1.ListContainerInstancesCommand({ cluster: clusterName }));
             return listInstanceResponse.containerInstanceArns;
         }
         catch (e) {
@@ -191,10 +212,10 @@ class ClusterCleanup {
             return [];
         }
     }
-    async deregisterContainerInstances(cluster, instances) {
+    async deregisterContainerInstances(clusterName, instances) {
         try {
             const deregisterResponses = await Promise.all(instances.map((i) => this.ecs.send(new client_ecs_1.DeregisterContainerInstanceCommand({
-                cluster,
+                cluster: clusterName,
                 containerInstance: i,
                 force: true,
             }))));
@@ -207,9 +228,9 @@ class ClusterCleanup {
             return [];
         }
     }
-    async deleteAllServices(cluster, services) {
+    async deleteAllServices(clusterName, serviceNames) {
         try {
-            const deleteServicesResponses = await Promise.all(services.map((service) => this.ecs.send(new client_ecs_1.DeleteServiceCommand({ cluster, service }))));
+            const deleteServicesResponses = await Promise.all(serviceNames.map((service) => this.ecs.send(new client_ecs_1.DeleteServiceCommand({ cluster: clusterName, service }))));
             return deleteServicesResponses.reduce((acc, r) => {
                 return acc.concat(r.service);
             }, []);
@@ -219,23 +240,10 @@ class ClusterCleanup {
             return [];
         }
     }
-    async describeStackResources(stackId, resourceId) {
-        try {
-            const describeResourceResponse = await this.cloudFormation.send(new client_cloudformation_1.DescribeStackResourcesCommand({
-                StackName: stackId,
-                LogicalResourceId: resourceId,
-            }));
-            return describeResourceResponse.StackResources;
-        }
-        catch (e) {
-            this.events.emit(_1.ClusterCleanupEvents.error, e);
-            return [];
-        }
-    }
-    async deleteStack(cluster) {
+    async deleteStack(clusterName) {
         try {
             const deleteStackResponse = await this.cloudFormation.send(new client_cloudformation_1.DeleteStackCommand({
-                StackName: `EC2ContainerService-${cluster}`,
+                StackName: `EC2ContainerService-${clusterName}`,
             }));
             return deleteStackResponse;
         }
@@ -244,10 +252,10 @@ class ClusterCleanup {
             return e;
         }
     }
-    async describeStackEvents(cluster) {
+    async describeStackEvents(clusterName) {
         try {
             const describeStackEventsResponse = await this.cloudFormation.send(new client_cloudformation_1.DescribeStackEventsCommand({
-                StackName: `EC2ContainerService-${cluster}`,
+                StackName: `EC2ContainerService-${clusterName}`,
             }));
             return describeStackEventsResponse.StackEvents;
         }
@@ -256,24 +264,24 @@ class ClusterCleanup {
             return [];
         }
     }
-    async pollCloudFormationForChanges(cluster, stack) {
-        const TEN_MINUTES = 10 * 60;
-        const pollTimer = this.setupCloudFormationPolling(cluster);
-        const waiterResult = await (0, client_cloudformation_1.waitUntilStackDeleteComplete)({ client: this.cloudFormation, maxWaitTime: TEN_MINUTES }, { StackName: stack.StackId });
-        clearInterval(pollTimer);
+    async waitForStackDeletion(stack, pollTimeoutInMs) {
+        const waiterResult = await (0, client_cloudformation_1.waitUntilStackDeleteComplete)({
+            client: this.cloudFormation,
+            maxWaitTime: Math.round(pollTimeoutInMs / 1000),
+        }, { StackName: stack.StackId });
         return waiterResult;
     }
-    setupCloudFormationPolling(cluster) {
-        const THIRTY_SECONDS = 30 * 1000;
+    setupCloudFormationPolling(clusterName, pollIntervalInMs, collector = []) {
         const alreadyDeleted = [];
         const pollEvent = async () => {
             try {
-                const stackEvents = (await this.describeStackEvents(cluster)) || [];
+                const stackEvents = (await this.describeStackEvents(clusterName)) || [];
                 stackEvents
                     .filter((e) => e.ResourceStatus === 'DELETE_COMPLETE')
                     .filter((e) => !alreadyDeleted.includes(e.LogicalResourceId))
                     .forEach((e) => {
                     alreadyDeleted.push(e.LogicalResourceId);
+                    collector.push(e.PhysicalResourceId);
                     this.events.emit(_1.ClusterCleanupEvents.resourceDeleted, e);
                 });
             }
@@ -281,11 +289,11 @@ class ClusterCleanup {
                 this.events.emit(_1.ClusterCleanupEvents.error, e);
             }
         };
-        return setInterval(pollEvent, THIRTY_SECONDS);
+        return setInterval(pollEvent, pollIntervalInMs);
     }
-    async deleteCluster(cluster) {
+    async deleteCluster(clusterName) {
         try {
-            const response = await this.ecs.send(new client_ecs_1.DeleteClusterCommand({ cluster }));
+            const response = await this.ecs.send(new client_ecs_1.DeleteClusterCommand({ cluster: clusterName }));
             return response.cluster;
         }
         catch (e) {

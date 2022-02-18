@@ -5,6 +5,9 @@ import {
 import {
   DescribeClustersCommand,
   DescribeClustersCommandOutput,
+  ListServicesCommand,
+  ListServicesCommandOutput,
+  LaunchType,
 } from '@aws-sdk/client-ecs';
 import { MetadataBearer } from '@aws-sdk/types';
 
@@ -19,15 +22,18 @@ export class MockAwsClient {
   public send(
     command: DescribeStacksCommand
   ): Promise<DescribeStacksCommandOutput>;
+  public send(command: ListServicesCommand): Promise<ListServicesCommandOutput>;
   public send<I extends object>(command: I): Promise<MetadataBearer> {
     this.commandLogger(command);
-    switch (command.constructor) {
-      case DescribeClustersCommand:
-        return Promise.resolve(this.mockDescribeClustersResponse());
-      case DescribeStacksCommand:
-        return Promise.resolve(this.mockDescribeStacksResponse());
-      default:
-        return Promise.resolve({ $metadata: {} });
+
+    if (command instanceof DescribeClustersCommand) {
+      return Promise.resolve(this.mockDescribeClustersResponse());
+    } else if (command instanceof DescribeStacksCommand) {
+      return Promise.resolve(this.mockDescribeStacksResponse());
+    } else if (command instanceof ListServicesCommand) {
+      return Promise.resolve(this.mockListServicesResponse(command));
+    } else {
+      return Promise.resolve({ $metadata: {} });
     }
   }
 
@@ -61,5 +67,28 @@ export class MockAwsClient {
         },
       ],
     };
+  }
+
+  private mockListServicesResponse(
+    command: ListServicesCommand
+  ): ListServicesCommandOutput {
+    switch (command.input.launchType) {
+      case LaunchType.FARGATE:
+        return {
+          $metadata: {},
+          serviceArns: [
+            'active:test:cluster:arn:ec2:service:arn-1',
+            'active:test:cluster:arn:ec2:service:arn-2',
+          ],
+        };
+      case LaunchType.EC2:
+        return {
+          $metadata: {},
+          serviceArns: [
+            'active:test:cluster:arn:fargate:service:arn-1',
+            'active:test:cluster:arn:fargate:service:arn-2',
+          ],
+        };
+    }
   }
 }

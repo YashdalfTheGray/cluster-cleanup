@@ -1,2 +1,2 @@
-export * from './MockAWSClient';
+export * from './MockAwsClient';
 export * from './MockCleanup';

@@ -1,7 +1,7 @@
 import test from 'ava';
 
 import { ClusterCleanupEvents } from '../../src';
-import MockCleanup from '../mocks/MockCleanup';
+import { MockCleanup } from '../mocks';
 
 test('cleanup events are fired as expected', async (t) => {
   const mockCleanup = new MockCleanup({

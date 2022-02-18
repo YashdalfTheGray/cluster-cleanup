@@ -24,7 +24,7 @@ export interface MockDeleteOptions extends DeleteOptions {
   };
 }
 
-export default class MockCleanup {
+export class MockCleanup {
   private launchTypes: LaunchType[];
   private events: ClusterCleanupEventEmitter;
 

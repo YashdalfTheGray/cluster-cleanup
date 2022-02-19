@@ -10,6 +10,10 @@ import {
   LaunchType,
   UpdateServiceCommand,
   UpdateServiceCommandOutput,
+  ListTasksCommand,
+  ListTasksCommandOutput,
+  StopTaskCommandOutput,
+  StopTaskCommand,
 } from '@aws-sdk/client-ecs';
 import { MetadataBearer } from '@aws-sdk/types';
 
@@ -39,6 +43,10 @@ export class MockAwsClient {
       return Promise.resolve(this.mockListServicesResponse(command));
     } else if (command instanceof UpdateServiceCommand) {
       return Promise.resolve(this.mockUpdateServiceResponse(command));
+    } else if (command instanceof ListTasksCommand) {
+      return Promise.resolve(this.mockListTasksResponse());
+    } else if (command instanceof StopTaskCommand) {
+      return Promise.resolve(this.mockStopTaskResponse(command));
     } else {
       return Promise.resolve({ $metadata: {} });
     }
@@ -106,6 +114,27 @@ export class MockAwsClient {
       $metadata: {},
       service: {
         serviceArn: command.input.service,
+      },
+    };
+  }
+
+  private mockListTasksResponse(): ListTasksCommandOutput {
+    return {
+      $metadata: {},
+      taskArns: [
+        'active:test:cluster:arn:ec2:task:arn-1',
+        'active:test:cluster:arn:ec2:task:arn-2',
+      ],
+    };
+  }
+
+  private mockStopTaskResponse(
+    command: StopTaskCommand
+  ): StopTaskCommandOutput {
+    return {
+      $metadata: {},
+      task: {
+        taskArn: command.input.task,
       },
     };
   }

@@ -14,6 +14,10 @@ import {
   ListTasksCommandOutput,
   StopTaskCommandOutput,
   StopTaskCommand,
+  ListContainerInstancesCommandOutput,
+  ListContainerInstancesCommand,
+  DeregisterContainerInstanceCommandOutput,
+  DeregisterContainerInstanceCommand,
 } from '@aws-sdk/client-ecs';
 import { MetadataBearer } from '@aws-sdk/types';
 
@@ -47,6 +51,12 @@ export class MockAwsClient {
       return Promise.resolve(this.mockListTasksResponse());
     } else if (command instanceof StopTaskCommand) {
       return Promise.resolve(this.mockStopTaskResponse(command));
+    } else if (command instanceof ListContainerInstancesCommand) {
+      return Promise.resolve(this.mockListContainerInstancesResponse());
+    } else if (command instanceof DeregisterContainerInstanceCommand) {
+      return Promise.resolve(
+        this.mockDeregisterContainerInstanceResponse(command)
+      );
     } else {
       return Promise.resolve({ $metadata: {} });
     }
@@ -135,6 +145,29 @@ export class MockAwsClient {
       $metadata: {},
       task: {
         taskArn: command.input.task,
+      },
+    };
+  }
+
+  private mockListContainerInstancesResponse(): ListContainerInstancesCommandOutput {
+    return {
+      $metadata: {},
+      containerInstanceArns: [
+        'active:test:cluster:arn:container:instance:arn-1',
+        'active:test:cluster:arn:container:instance:arn-2',
+        'active:test:cluster:arn:container:instance:arn-3',
+        'active:test:cluster:arn:container:instance:arn-4',
+      ],
+    };
+  }
+
+  private mockDeregisterContainerInstanceResponse(
+    command: DeregisterContainerInstanceCommand
+  ): DeregisterContainerInstanceCommandOutput {
+    return {
+      $metadata: {},
+      containerInstance: {
+        containerInstanceArn: command.input.containerInstance,
       },
     };
   }

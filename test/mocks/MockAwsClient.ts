@@ -8,6 +8,8 @@ import {
   ListServicesCommand,
   ListServicesCommandOutput,
   LaunchType,
+  UpdateServiceCommand,
+  UpdateServiceCommandOutput,
 } from '@aws-sdk/client-ecs';
 import { MetadataBearer } from '@aws-sdk/types';
 
@@ -23,6 +25,9 @@ export class MockAwsClient {
     command: DescribeStacksCommand
   ): Promise<DescribeStacksCommandOutput>;
   public send(command: ListServicesCommand): Promise<ListServicesCommandOutput>;
+  public send(
+    command: UpdateServiceCommand
+  ): Promise<UpdateServiceCommandOutput>;
   public send<I extends object>(command: I): Promise<MetadataBearer> {
     this.commandLogger(command);
 
@@ -32,6 +37,8 @@ export class MockAwsClient {
       return Promise.resolve(this.mockDescribeStacksResponse());
     } else if (command instanceof ListServicesCommand) {
       return Promise.resolve(this.mockListServicesResponse(command));
+    } else if (command instanceof UpdateServiceCommand) {
+      return Promise.resolve(this.mockUpdateServiceResponse(command));
     } else {
       return Promise.resolve({ $metadata: {} });
     }
@@ -90,5 +97,16 @@ export class MockAwsClient {
           ],
         };
     }
+  }
+
+  private mockUpdateServiceResponse(
+    command: UpdateServiceCommand
+  ): UpdateServiceCommandOutput {
+    return {
+      $metadata: {},
+      service: {
+        serviceArn: command.input.service,
+      },
+    };
   }
 }

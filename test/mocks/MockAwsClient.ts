@@ -1,4 +1,8 @@
 import {
+  DeleteStackCommand,
+  DeleteStackCommandOutput,
+  DescribeStackEventsCommand,
+  DescribeStackEventsCommandOutput,
   DescribeStacksCommand,
   DescribeStacksCommandOutput,
 } from '@aws-sdk/client-cloudformation';
@@ -18,6 +22,8 @@ import {
   ListContainerInstancesCommand,
   DeregisterContainerInstanceCommandOutput,
   DeregisterContainerInstanceCommand,
+  DeleteServiceCommand,
+  DeleteServiceCommandOutput,
 } from '@aws-sdk/client-ecs';
 import { MetadataBearer } from '@aws-sdk/types';
 
@@ -47,6 +53,8 @@ export class MockAwsClient {
       return Promise.resolve(this.mockListServicesResponse(command));
     } else if (command instanceof UpdateServiceCommand) {
       return Promise.resolve(this.mockUpdateServiceResponse(command));
+    } else if (command instanceof DeleteServiceCommand) {
+      return Promise.resolve(this.mockDeleteServiceResponse(command));
     } else if (command instanceof ListTasksCommand) {
       return Promise.resolve(this.mockListTasksResponse());
     } else if (command instanceof StopTaskCommand) {
@@ -57,6 +65,10 @@ export class MockAwsClient {
       return Promise.resolve(
         this.mockDeregisterContainerInstanceResponse(command)
       );
+    } else if (command instanceof DeleteStackCommand) {
+      return Promise.resolve(this.mockDeleteStackResponse(command));
+    } else if (command instanceof DescribeStackEventsCommand) {
+      return Promise.resolve(this.mockDescribeStackEventsResponse());
     } else {
       return Promise.resolve({ $metadata: {} });
     }
@@ -128,6 +140,17 @@ export class MockAwsClient {
     };
   }
 
+  private mockDeleteServiceResponse(
+    command: DeleteServiceCommand
+  ): DeleteServiceCommandOutput {
+    return {
+      $metadata: {},
+      service: {
+        serviceArn: command.input.service,
+      },
+    };
+  }
+
   private mockListTasksResponse(): ListTasksCommandOutput {
     return {
       $metadata: {},
@@ -169,6 +192,54 @@ export class MockAwsClient {
       containerInstance: {
         containerInstanceArn: command.input.containerInstance,
       },
+    };
+  }
+
+  private mockDeleteStackResponse(
+    command: DeleteStackCommand
+  ): DeleteStackCommandOutput {
+    return {
+      $metadata: {},
+    };
+  }
+
+  private mockDescribeStackEventsResponse(): DescribeStackEventsCommandOutput {
+    return {
+      $metadata: {},
+      StackEvents: [
+        {
+          EventId: 'test-event-id',
+          StackId: 'test:stack:arn',
+          ResourceType: 'AWS::VPC',
+          StackName: 'test-stack',
+          Timestamp: new Date(),
+          ResourceStatus: 'DELETE_IN_PROGRESS',
+        },
+        {
+          EventId: 'test-event-id',
+          StackId: 'test:stack:arn',
+          ResourceType: 'AWS::EC2::AutoscalingGroup',
+          StackName: 'test-stack',
+          Timestamp: new Date(),
+          ResourceStatus: 'DELETE_COMPLETE',
+        },
+        {
+          EventId: 'test-event-id',
+          StackId: 'test:stack:arn',
+          ResourceType: 'AWS::VPC::SecurityGroup',
+          StackName: 'test-stack',
+          Timestamp: new Date(),
+          ResourceStatus: 'DELETE_COMPLETE',
+        },
+        {
+          EventId: 'test-event-id',
+          StackId: 'test:stack:arn',
+          ResourceType: 'AWS::VPC::Subnet',
+          StackName: 'test-stack',
+          Timestamp: new Date(),
+          ResourceStatus: 'DELETE_COMPLETE',
+        },
+      ],
     };
   }
 }

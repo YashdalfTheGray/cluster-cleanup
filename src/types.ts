@@ -11,4 +11,5 @@ export interface DeleteOptions {
   verbose?: boolean;
   pollTimeoutMs?: number;
   pollIntervalMs?: number;
+  polliMinDelayMs?: number;
 }

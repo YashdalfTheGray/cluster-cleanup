@@ -68,6 +68,7 @@ export class ClusterCleanup {
       verbose: false,
       pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
       pollTimeoutMs: this.TEN_MINUTES_IN_MS,
+      polliMinDelayMs: this.THIRTY_SECONDS_IN_MS,
     }
   ): Promise<string[]> {
     const cleanedUpResources = [];
@@ -160,7 +161,8 @@ export class ClusterCleanup {
 
         const result = await this.waitForStackDeletion(
           stack,
-          options.pollTimeoutMs
+          options.pollTimeoutMs,
+          options.polliMinDelayMs
         );
 
         if (result.state !== WaiterState.SUCCESS) {
@@ -178,7 +180,7 @@ export class ClusterCleanup {
         this.events.emit(ClusterCleanupEvents.done, clusterName);
       } catch (e) {
         this.events.emit(ClusterCleanupEvents.doneWithError, e);
-        return;
+        return [];
       }
     } else {
       const deletedCluster = await this.deleteCluster(clusterName);
@@ -410,12 +412,14 @@ export class ClusterCleanup {
 
   private async waitForStackDeletion(
     stack: Stack,
-    pollTimeoutInMs: number
+    pollTimeoutInMs: number,
+    pollMinDelayMs: number
   ): ReturnType<typeof waitUntilStackDeleteComplete> {
     const waiterResult = await waitUntilStackDeleteComplete(
       {
         client: this.cloudFormation,
         maxWaitTime: Math.round(pollTimeoutInMs / 1000),
+        minDelay: Math.round(pollMinDelayMs / 1000),
       },
       { StackName: stack.StackId }
     );

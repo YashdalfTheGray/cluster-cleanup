@@ -29,6 +29,7 @@ class ClusterCleanup {
         verbose: false,
         pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
         pollTimeoutMs: this.TEN_MINUTES_IN_MS,
+        polliMinDelayMs: this.THIRTY_SECONDS_IN_MS,
     }) {
         const cleanedUpResources = [];
         // 1. find CloudFormation stack
@@ -87,7 +88,7 @@ class ClusterCleanup {
             this.events.emit(_1.ClusterCleanupEvents.stackDeletionStarted, stack.StackId);
             try {
                 const pollTimer = this.setupCloudFormationPolling(clusterName, options.pollIntervalMs, cleanedUpResources);
-                const result = await this.waitForStackDeletion(stack, options.pollTimeoutMs);
+                const result = await this.waitForStackDeletion(stack, options.pollTimeoutMs, options.polliMinDelayMs);
                 if (result.state !== util_waiter_1.WaiterState.SUCCESS) {
                     clearInterval(pollTimer);
                     throw new Error(result.reason);
@@ -102,7 +103,7 @@ class ClusterCleanup {
             }
             catch (e) {
                 this.events.emit(_1.ClusterCleanupEvents.doneWithError, e);
-                return;
+                return [];
             }
         }
         else {
@@ -264,10 +265,11 @@ class ClusterCleanup {
             return [];
         }
     }
-    async waitForStackDeletion(stack, pollTimeoutInMs) {
+    async waitForStackDeletion(stack, pollTimeoutInMs, pollMinDelayMs) {
         const waiterResult = await (0, client_cloudformation_1.waitUntilStackDeleteComplete)({
             client: this.cloudFormation,
             maxWaitTime: Math.round(pollTimeoutInMs / 1000),
+            minDelay: Math.round(pollMinDelayMs / 1000),
         }, { StackName: stack.StackId });
         return waiterResult;
     }

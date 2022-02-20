@@ -98,7 +98,7 @@ export class ClusterCleanup {
           `Cluster ${clusterName} does not exist in the region specified`
         )
       );
-      return;
+      return [];
     }
 
     let services: Service[];

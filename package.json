@@ -9,7 +9,9 @@
   },
   "scripts": {
     "test": "nyc ava",
-    "test:no-coverage": "ava",
+    "test:all": "ava",
+    "test:unit": "ava src/**/*.spec.ts",
+    "test:functional": "ava test/functional/*.spec.ts",
     "open-coverage": "npx open coverage/index.html",
     "build": "tsc",
     "start": "npm run build",

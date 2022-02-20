@@ -24,6 +24,8 @@ import {
   DeregisterContainerInstanceCommand,
   DeleteServiceCommand,
   DeleteServiceCommandOutput,
+  DeleteClusterCommand,
+  DeleteClusterCommandOutput,
 } from '@aws-sdk/client-ecs';
 import { MetadataBearer } from '@aws-sdk/types';
 
@@ -47,8 +49,6 @@ export class MockAwsClient {
 
     if (command instanceof DescribeClustersCommand) {
       return Promise.resolve(this.mockDescribeClustersResponse());
-    } else if (command instanceof DescribeStacksCommand) {
-      return Promise.resolve(this.mockDescribeStacksResponse());
     } else if (command instanceof ListServicesCommand) {
       return Promise.resolve(this.mockListServicesResponse(command));
     } else if (command instanceof UpdateServiceCommand) {
@@ -65,6 +65,10 @@ export class MockAwsClient {
       return Promise.resolve(
         this.mockDeregisterContainerInstanceResponse(command)
       );
+    } else if (command instanceof DeleteClusterCommand) {
+      return Promise.resolve(this.mockDeleteClusterResponse(command));
+    } else if (command instanceof DescribeStacksCommand) {
+      return Promise.resolve(this.mockDescribeStacksResponse(command));
     } else if (command instanceof DeleteStackCommand) {
       return Promise.resolve(this.mockDeleteStackResponse(command));
     } else if (command instanceof DescribeStackEventsCommand) {
@@ -87,20 +91,6 @@ export class MockAwsClient {
           clusterArn: 'inactive:test:cluster:arn',
           clusterName: 'inactive-test-cluster',
           status: 'INACTIVE',
-        },
-      ],
-    };
-  }
-
-  private mockDescribeStacksResponse(): DescribeStacksCommandOutput {
-    return {
-      $metadata: {},
-      Stacks: [
-        {
-          StackName: 'test-stack',
-          StackId: 'test:stack:arn',
-          StackStatus: 'CREATE_COMPLETE',
-          CreationTime: new Date(),
         },
       ],
     };
@@ -192,6 +182,33 @@ export class MockAwsClient {
       containerInstance: {
         containerInstanceArn: command.input.containerInstance,
       },
+    };
+  }
+
+  private mockDeleteClusterResponse(
+    command: DeleteClusterCommand
+  ): DeleteClusterCommandOutput {
+    return {
+      $metadata: {},
+      cluster: {
+        clusterArn: command.input.cluster,
+      },
+    };
+  }
+
+  private mockDescribeStacksResponse(
+    command: DescribeStacksCommand
+  ): DescribeStacksCommandOutput {
+    return {
+      $metadata: {},
+      Stacks: [
+        {
+          StackName: 'test-stack',
+          StackId: command.input.StackName,
+          StackStatus: 'DELETE_COMPLETE',
+          CreationTime: new Date(),
+        },
+      ],
     };
   }
 

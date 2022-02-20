@@ -5,7 +5,7 @@ import test from 'ava';
 import { ClusterCleanup } from '../../src';
 import { MockAwsClient } from '../mocks';
 
-test.failing('cleanup goes through all the motions', async (t) => {
+test('cleanup goes through all the motions', async (t) => {
   const seenCommands = [];
   const mockAwsClient = new MockAwsClient((command) => {
     seenCommands.push(command);
@@ -21,12 +21,53 @@ test.failing('cleanup goes through all the motions', async (t) => {
     'active-test-cluster',
     'test-stack',
     {
-      verbose: true,
-      pollTimeoutMs: 1000,
+      verbose: false,
+      pollTimeoutMs: 2000,
       pollIntervalMs: 100,
+      polliMinDelayMs: 1000,
     }
   );
 
-  t.not(seenCommands.length, 0);
-  t.not(cleanedUpResources.length, 0);
+  t.deepEqual(
+    seenCommands.map((c) => c.constructor.name),
+    [
+      'DescribeClustersCommand',
+      'DescribeStacksCommand',
+      'ListServicesCommand',
+      'ListServicesCommand',
+      'UpdateServiceCommand',
+      'UpdateServiceCommand',
+      'UpdateServiceCommand',
+      'UpdateServiceCommand',
+      'ListTasksCommand',
+      'StopTaskCommand',
+      'StopTaskCommand',
+      'ListContainerInstancesCommand',
+      'DeregisterContainerInstanceCommand',
+      'DeregisterContainerInstanceCommand',
+      'DeregisterContainerInstanceCommand',
+      'DeregisterContainerInstanceCommand',
+      'DeleteServiceCommand',
+      'DeleteServiceCommand',
+      'DeleteServiceCommand',
+      'DeleteServiceCommand',
+      'DeleteStackCommand',
+      'DescribeStacksCommand',
+      'DeleteClusterCommand',
+    ]
+  );
+  t.deepEqual(cleanedUpResources, [
+    'active:test:cluster:arn:ec2:task:arn-1',
+    'active:test:cluster:arn:ec2:task:arn-2',
+    'active:test:cluster:arn:container:instance:arn-1',
+    'active:test:cluster:arn:container:instance:arn-2',
+    'active:test:cluster:arn:container:instance:arn-3',
+    'active:test:cluster:arn:container:instance:arn-4',
+    'active:test:cluster:arn:fargate:service:arn-1',
+    'active:test:cluster:arn:fargate:service:arn-2',
+    'active:test:cluster:arn:ec2:service:arn-1',
+    'active:test:cluster:arn:ec2:service:arn-2',
+    'test-stack',
+    'active-test-cluster',
+  ]);
 });

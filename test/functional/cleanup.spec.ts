@@ -22,9 +22,9 @@ test('cleanup goes through all the motions', async (t) => {
     'test-stack',
     {
       verbose: false,
-      pollTimeoutMs: 2000,
-      pollIntervalMs: 100,
-      polliMinDelayMs: 1000,
+      waiterTimeoutMs: 2000,
+      stackEventsPollIntervalMs: 100,
+      waiterPollMinDelayMs: 1000,
     }
   );
 

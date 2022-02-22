@@ -21,16 +21,16 @@ class ClusterCleanup {
     get eventEmitter() {
         return this.events;
     }
-    async deleteClusterAndResources(clusterName, stackName = `EC2ContainerService-${clusterName}`, options = {}) {
+    async deleteClusterAndResources(clusterName, stackName = `EC2ContainerService-${clusterName}`, options = {
+        verbose: false,
+        waiterTimeoutMs: this.TEN_MINUTES_IN_MS,
+        waiterPollMinDelayMs: this.THIRTY_SECONDS_IN_MS,
+        stackEventsPollIntervalMs: this.THIRTY_SECONDS_IN_MS,
+    }) {
         this.events.verbose = options.verbose;
         return this.deleteHelper(clusterName, stackName, options);
     }
-    async deleteHelper(clusterName, stackName, options = {
-        verbose: false,
-        pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
-        pollTimeoutMs: this.TEN_MINUTES_IN_MS,
-        polliMinDelayMs: this.THIRTY_SECONDS_IN_MS,
-    }) {
+    async deleteHelper(clusterName, stackName, options = {}) {
         const cleanedUpResources = [];
         // 1. find CloudFormation stack
         // 2. find all services
@@ -49,7 +49,7 @@ class ClusterCleanup {
         this.events.emit(_1.ClusterCleanupEvents.start, clusterName);
         if (!(await this.doesClusterExist(clusterName))) {
             this.events.emit(_1.ClusterCleanupEvents.doneWithError, new Error(`Cluster ${clusterName} does not exist in the region specified`));
-            return;
+            return [];
         }
         let services;
         let instances;
@@ -87,8 +87,8 @@ class ClusterCleanup {
             await this.deleteStack(clusterName);
             this.events.emit(_1.ClusterCleanupEvents.stackDeletionStarted, stack.StackId);
             try {
-                const pollTimer = this.setupCloudFormationPolling(clusterName, options.pollIntervalMs, cleanedUpResources);
-                const result = await this.waitForStackDeletion(stack, options.pollTimeoutMs, options.polliMinDelayMs);
+                const pollTimer = this.setupCloudFormationPolling(clusterName, options.stackEventsPollIntervalMs, cleanedUpResources);
+                const result = await this.waitForStackDeletion(stack, options.waiterTimeoutMs, options.waiterPollMinDelayMs);
                 if (result.state !== util_waiter_1.WaiterState.SUCCESS) {
                     clearInterval(pollTimer);
                     throw new Error(result.reason);

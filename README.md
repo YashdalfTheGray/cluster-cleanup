@@ -44,32 +44,35 @@ The `deleteClusterAndResources` function can optionally take an object with a si
 
 ## Events
 
-The `events` instance returned from the `.deleteClusterAndResrouces()` call inherits from the Node.js `EventEmitter` and adds methods to listen to all the possible events to increase discovery through the typings file. All the event listener functions return a function that can be called to remove the listener. The events, their methods and the data associated with the event is listed below.
+The `events` instance returned from the `ClusterCleanup.events` getter call inherits from the Node.js `EventEmitter` and adds override type signatures to the `on` method to increase visibility into what events are emitted and what data goes along with each event. The `on` function also returns a function that can be called to remove the listener. The events and the expected data passed to the listener are listed below.
 
-| Event                   | Data and Type                        | Listener Method           |
-| ----------------------- | ------------------------------------ | ------------------------- |
-| `start`                 | `clusterName: string`                | `onStart`                 |
-| `stackFound`            | `stack: CloudFormation.Stack`        | `onStackFound`            |
-| `servicesFound`         | `serviceArns: string[]`              | `onServicesFound`         |
-| `servicesScaledDown`    | `services: ECS.Service[]`            | `onServicesScaledDown`    |
-| `tasksFound`            | `taskArns: string[]`                 | `onTasksFound`            |
-| `tasksStopped`          | `tasks: ECS.Task[]`                  | `onTasksStopped`          |
-| `instancesFound`        | `instanceArns: string[]`             | `onInstancesFound`        |
-| `instancesDeregistered` | `instances: ECS.ContainerInstance[]` | `onInstancesDeregistered` |
-| `stackDeletionStarted`  | `stackId: string`                    | `onStackDeletionStarted`  |
-| `stackDeletionDone`     | `stackId: string`                    | `onStackDeletionDone`     |
-| `resourceDeleted`       | `event: CloudFormation.StackEvent`   | `onResourceDeleted`       |
-| `clusterDeleted`        | `cluster: ECS.Cluster`               | `onClusterDeleted`        |
-| `done`                  | `clusterName: string`                | `onDone`                  |
-| `error`                 | `error: Error`                       | `onError`                 |
-| `doneWithError`         | `error: Error`                       | `onDoneWithError`         |
+| Event                   | Data and Type                        |
+| ----------------------- | ------------------------------------ |
+| `start`                 | `clusterName: string`                |
+| `stackFound`            | `stack: CloudFormation.Stack`        |
+| `servicesFound`         | `serviceArns: string[]`              |
+| `servicesScaledDown`    | `services: ECS.Service[]`            |
+| `tasksFound`            | `taskArns: string[]`                 |
+| `tasksStopped`          | `tasks: ECS.Task[]`                  |
+| `instancesFound`        | `instanceArns: string[]`             |
+| `instancesDeregistered` | `instances: ECS.ContainerInstance[]` |
+| `stackDeletionStarted`  | `stackId: string`                    |
+| `stackDeletionDone`     | `stackId: string`                    |
+| `resourceDeleted`       | `event: CloudFormation.StackEvent`   |
+| `clusterDeleted`        | `cluster: ECS.Cluster`               |
+| `done`                  | `clusterName: string`                |
+| `error`                 | `error: Error`                       |
+| `doneWithError`         | `error: Error`                       |
 
 For example, to listen for when the CloudFormation stack is deleted,
 
 ```javascript
-const removeListener = events.onStackDeletionDone((stackId) => {
-  console.log(`Stack ${stackId} deleted!`);
-});
+const removeListener = events.on(
+  ClusterCleanupEvents.stackDeletionDone,
+  (stackId) => {
+    console.log(`Stack ${stackId} deleted!`);
+  }
+);
 
 // other code
 

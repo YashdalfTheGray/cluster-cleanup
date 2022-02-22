@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [12.x, 14.x, 16.x]
+        node-version: [12, 14, 16, 17]
 
     steps:
       - name: Checkout code
@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+          check-latest: true
           cache: 'npm'
 
       - name: Install packages

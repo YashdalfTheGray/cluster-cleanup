@@ -54,7 +54,12 @@ export class ClusterCleanup {
   public async deleteClusterAndResources(
     clusterName: string,
     stackName = `EC2ContainerService-${clusterName}`,
-    options: DeleteOptions = {}
+    options: DeleteOptions = {
+      verbose: false,
+      waiterTimeoutMs: this.TEN_MINUTES_IN_MS,
+      waiterPollMinDelayMs: this.THIRTY_SECONDS_IN_MS,
+      stackEventsPollIntervalMs: this.THIRTY_SECONDS_IN_MS,
+    }
   ): Promise<string[]> {
     this.events.verbose = options.verbose;
 
@@ -64,12 +69,7 @@ export class ClusterCleanup {
   private async deleteHelper(
     clusterName: string,
     stackName?: string,
-    options: DeleteOptions = {
-      verbose: false,
-      pollIntervalMs: this.THIRTY_SECONDS_IN_MS,
-      pollTimeoutMs: this.TEN_MINUTES_IN_MS,
-      polliMinDelayMs: this.THIRTY_SECONDS_IN_MS,
-    }
+    options: DeleteOptions = {}
   ): Promise<string[]> {
     const cleanedUpResources = [];
 
@@ -155,14 +155,14 @@ export class ClusterCleanup {
       try {
         const pollTimer = this.setupCloudFormationPolling(
           clusterName,
-          options.pollIntervalMs,
+          options.stackEventsPollIntervalMs,
           cleanedUpResources
         );
 
         const result = await this.waitForStackDeletion(
           stack,
-          options.pollTimeoutMs,
-          options.polliMinDelayMs
+          options.waiterTimeoutMs,
+          options.waiterPollMinDelayMs
         );
 
         if (result.state !== WaiterState.SUCCESS) {

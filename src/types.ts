@@ -9,7 +9,7 @@ export interface ClusterCleanupConfig extends ECSClientConfig {
 
 export interface DeleteOptions {
   verbose?: boolean;
-  pollTimeoutMs?: number;
-  pollIntervalMs?: number;
-  polliMinDelayMs?: number;
+  waiterTimeoutMs?: number;
+  waiterPollMinDelayMs?: number;
+  stackEventsPollIntervalMs?: number;
 }

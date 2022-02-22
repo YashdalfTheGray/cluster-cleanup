@@ -22,17 +22,18 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 
 ## Usage
 
-Run `npm install cluster-cleanup` to pull down the package. Require it in your code by creating an instance of the `ClusterCleanup` class which can be passed the same config object as the AWS SDK. You can then use it to delete clusters completely including the resources that come with ECS clusters. Sample code below.
+Run `npm install cluster-cleanup` to pull down the package. Require it in your code, and create an instance of the `ClusterCleanup` class which can be passed the same config object as the AWS SDK. You can then use it to delete clusters completely including the resources that come with ECS clusters. Sample code below.
 
 ```javascript
-const ClusterCleanup = require('cluster-cleanup');
+const { ClusterCleanup, ClusterCleanupEvents } = require('cluster-cleanup');
 
 const clusterCleanup = new ClusterCleanup();
+const events = clusterCleanup.eventEmitter;
 
 async () => {
   const events = clusterCleanup.deleteClusterAndResources('default');
 
-  events.onError((e) => console.error(e));
+  events.on(ClusterCleanupEvents.error, (e) => console.error(e));
 };
 ```
 
@@ -40,7 +41,14 @@ The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options 
 
 Additionally, this also takes initialized clients for ECS and CloudFormation if you don't want `ClusterCleanup` to create new clients.
 
-The `deleteClusterAndResources` function can optionally take an object with a single property called `verbose` which will log out every event coming from cluster manager.
+The `deleteClusterAndResources` function can optionally take an object with the following properties
+
+- a property called `verbose` which will log out every event coming from cluster cleanup process, defaults to `false`
+- a property called `waiterTimeoutMs` which is the timeout in milliseconds for the AWS SDK waiter to wait for the CloudFormation stack to be deleted, defaults to 10 minutes
+- a property called `waiterPollMinDelayMs` which is the minimum delay in milliseconds between each run of `cloudformation::describeStacks` with the stack being deleted, defaults to 30 seconds
+- a property called `stackEventsPollIntervalMs` which is the interval in milliseconds between each run of `cloudformation::describeStackEvents` for the stack being deleted, defaults to 30 seconds
+
+We call `cloudformation::describeStackEvents` so that we can get information on the cleanup of the resources specified by the stack. We set up a waiter that uses `cloudformation::describeStacks` to wait for the stack being deleted.
 
 ## Events
 

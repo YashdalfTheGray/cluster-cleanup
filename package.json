@@ -42,7 +42,7 @@
     "@aws-sdk/client-cloudformation": "~3.50.0",
     "@aws-sdk/client-ecs": "~3.50.0",
     "@types/lodash": "~4.14.165",
-    "chalk": "~5.0.0",
+    "chalk": "~4.1.2",
     "lodash": "~4.17.20"
   },
   "ava": {

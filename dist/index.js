@@ -10,6 +10,7 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+__exportStar(require("./cliSupport"), exports);
 __exportStar(require("./ClusterCleanup"), exports);
 __exportStar(require("./ClusterCleanupEvents"), exports);
 __exportStar(require("./types"), exports);

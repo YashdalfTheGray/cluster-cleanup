@@ -5,7 +5,7 @@ import { ClusterCleanup, ClusterCleanupConfig, ClusterCleanupEvents } from '.';
 export function setupCleanerWithConfig(
   config: ClusterCleanupConfig,
   verbose = true
-): ClusterCleanup {
+) {
   const cleaner = new ClusterCleanup(config);
 
   cleaner.eventEmitter.on(ClusterCleanupEvents.doneWithError, (e) => {
@@ -47,7 +47,7 @@ export function setupCleanerWithConfig(
       ClusterCleanupEvents.servicesScaledDown,
       (services) => {
         console.log('Scaled down the following services to 0');
-        console.log(chalk.cyan(services.map((s) => s.serviceName).join('\n')));
+        console.log(chalk.cyan(services.map((s) => s.serviceArn).join('\n')));
       }
     );
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { setupCleanerWithConfig } = require('../dist');
+const { ClusterCleanup, decorateClusterCleanup } = require('../dist');
 
 [
   'AWS_ACCESS_KEY_ID',
@@ -23,7 +23,7 @@ const config = {
   enableFargate: true,
 };
 
-const cleaner = setupCleanerWithConfig(config);
+const cleaner = decorateClusterCleanup(new ClusterCleanup(config), true);
 
 cleaner.deleteClusterAndResources(
   process.env.ECS_CLUSTER,

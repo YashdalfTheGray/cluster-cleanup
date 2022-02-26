@@ -1,2 +1,2 @@
-import { ClusterCleanup, ClusterCleanupConfig } from '.';
-export declare function setupCleanerWithConfig(config: ClusterCleanupConfig, verbose?: boolean): ClusterCleanup;
+import { ClusterCleanup } from '.';
+export declare function decorateClusterCleanup(instance: ClusterCleanup, verbose?: boolean): ClusterCleanup;

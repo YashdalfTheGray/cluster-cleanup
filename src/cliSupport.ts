@@ -1,29 +1,27 @@
 import * as chalk from 'chalk';
 
-import { ClusterCleanup, ClusterCleanupConfig, ClusterCleanupEvents } from '.';
+import { ClusterCleanup, ClusterCleanupEvents } from '.';
 
-export function setupCleanerWithConfig(
-  config: ClusterCleanupConfig,
+export function decorateClusterCleanup(
+  instance: ClusterCleanup,
   verbose = true
 ) {
-  const cleaner = new ClusterCleanup(config);
-
-  cleaner.eventEmitter.on(ClusterCleanupEvents.doneWithError, (e) => {
+  instance.eventEmitter.on(ClusterCleanupEvents.doneWithError, (e) => {
     console.log(chalk.red(e.message));
     console.error(e);
     process.exit(1);
   });
 
-  cleaner.eventEmitter.on(ClusterCleanupEvents.error, (e) => {
+  instance.eventEmitter.on(ClusterCleanupEvents.error, (e) => {
     console.log(chalk.red(e.message));
     console.error(e);
   });
 
-  cleaner.eventEmitter.on(ClusterCleanupEvents.start, (clusterName) =>
+  instance.eventEmitter.on(ClusterCleanupEvents.start, (clusterName) =>
     console.log(`Starting cleanup of cluster ${chalk.cyan(clusterName)}`)
   );
 
-  cleaner.eventEmitter.on(ClusterCleanupEvents.done, (clusterName) => {
+  instance.eventEmitter.on(ClusterCleanupEvents.done, (clusterName) => {
     console.log(
       `${chalk.green(
         'Successfully'
@@ -32,18 +30,18 @@ export function setupCleanerWithConfig(
   });
 
   if (verbose) {
-    cleaner.eventEmitter.on(ClusterCleanupEvents.stackFound, (stack) => {
+    instance.eventEmitter.on(ClusterCleanupEvents.stackFound, (stack) => {
       console.log(
         `Found stack for cluster by name ${chalk.cyan(stack.StackName)}`
       );
     });
 
-    cleaner.eventEmitter.on(ClusterCleanupEvents.servicesFound, (services) => {
+    instance.eventEmitter.on(ClusterCleanupEvents.servicesFound, (services) => {
       console.log('Found the following services');
       console.log(chalk.cyan(services.join('\n')));
     });
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.servicesScaledDown,
       (services) => {
         console.log('Scaled down the following services to 0');
@@ -51,17 +49,17 @@ export function setupCleanerWithConfig(
       }
     );
 
-    cleaner.eventEmitter.on(ClusterCleanupEvents.tasksFound, (tasks) => {
+    instance.eventEmitter.on(ClusterCleanupEvents.tasksFound, (tasks) => {
       console.log('Found the following tasks');
       console.log(chalk.cyan(tasks.join('\n')));
     });
 
-    cleaner.eventEmitter.on(ClusterCleanupEvents.tasksStopped, (tasks) => {
+    instance.eventEmitter.on(ClusterCleanupEvents.tasksStopped, (tasks) => {
       console.log('Stopped the following tasks');
       console.log(chalk.cyan(tasks.map((t) => t.taskArn).join('\n')));
     });
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.instancesFound,
       (instances) => {
         console.log('Found the following instances');
@@ -69,7 +67,7 @@ export function setupCleanerWithConfig(
       }
     );
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.instancesDeregistered,
       (instances) => {
         console.log('Deregistered the following instances');
@@ -79,7 +77,7 @@ export function setupCleanerWithConfig(
       }
     );
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.servicesDeleted,
       (services) => {
         console.log('Deleted the following services');
@@ -87,14 +85,14 @@ export function setupCleanerWithConfig(
       }
     );
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.stackDeletionStarted,
       (stackId) => {
         console.log(`Started deleting stack with id ${chalk.cyan(stackId)}`);
       }
     );
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.resourceDeleted,
       (resource) => {
         console.log(
@@ -105,7 +103,7 @@ export function setupCleanerWithConfig(
       }
     );
 
-    cleaner.eventEmitter.on(
+    instance.eventEmitter.on(
       ClusterCleanupEvents.stackDeletionDone,
       (stackId) => {
         console.log(
@@ -116,7 +114,7 @@ export function setupCleanerWithConfig(
       }
     );
 
-    cleaner.eventEmitter.on(ClusterCleanupEvents.clusterDeleted, (cluster) => {
+    instance.eventEmitter.on(ClusterCleanupEvents.clusterDeleted, (cluster) => {
       console.log(
         `${chalk.green('Successfully')} deleted cluster called ${chalk.cyan(
           cluster
@@ -126,8 +124,8 @@ export function setupCleanerWithConfig(
   }
 
   process.on('exit', () => {
-    cleaner.eventEmitter.removeAllListeners();
+    instance.eventEmitter.removeAllListeners();
   });
 
-  return cleaner;
+  return instance;
 }

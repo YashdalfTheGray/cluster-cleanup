@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out"
+  },
+  "filesGlob": ["./test/mocks/**/*.ts"],
+  "exclude": ["node_modules", "dist", "./src/**/*.*"]
+}

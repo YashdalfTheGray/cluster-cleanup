@@ -89,4 +89,8 @@ removeListener();
 
 All of this information is also surfaced via typings that are included in this library.
 
+## ClI Support
+
+This package also vends a decorator that listens to all the events and logs out everything (with some color using `chalk`) to the console. This is meant to make creating an executable file that runs this script a bit better and remove duplication of code.
+
 Issue and PR templates derived from [smhxx/atom-ts-transpiler](https://github.com/smhxx/atom-ts-transpiler).

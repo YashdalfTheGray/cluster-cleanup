@@ -14,8 +14,9 @@
     "test:functional": "ava test/functional/*.spec.ts",
     "open-coverage": "npx open coverage/index.html",
     "build": "tsc",
+    "build:mocks": "tsc --project ./tsconfig.mocks.json",
     "start": "npm run build",
-    "clean": "npx rimraf dist/*.js dist/*.ts"
+    "clean": "npx rimraf dist/* out/*"
   },
   "repository": {
     "type": "git",

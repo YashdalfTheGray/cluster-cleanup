@@ -17,7 +17,13 @@
     "outDir": "./dist"
   },
   "filesGlob": ["./src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "./src/**/*.spec.*", "./test/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "out",
+    "./src/**/*.spec.*",
+    "./test/**/*.ts"
+  ],
   "compileOnSave": false,
   "buildOnSave": false,
   "atom": {

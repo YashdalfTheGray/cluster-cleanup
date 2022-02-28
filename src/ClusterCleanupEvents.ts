@@ -1,6 +1,8 @@
+import { EventEmitter } from 'events';
+
+import * as chalk from 'chalk';
 import { Stack, StackEvent } from '@aws-sdk/client-cloudformation';
 import { Cluster, ContainerInstance, Service, Task } from '@aws-sdk/client-ecs';
-import { EventEmitter } from 'events';
 
 import { Listener, RemoveListenerFunction } from './types';
 
@@ -80,7 +82,7 @@ export class ClusterCleanupEventEmitter {
     ...data: D
   ): boolean {
     if (this.verbose) {
-      console.log(`Emitting event ${event}`);
+      console.log(chalk.dim(`[ClusterCLeanupEvents] Emitting event ${event}`));
     }
     return this.events.emit(event, ...data);
   }

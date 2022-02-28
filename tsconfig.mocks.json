@@ -4,5 +4,5 @@
     "outDir": "./out"
   },
   "filesGlob": ["./test/mocks/**/*.ts"],
-  "exclude": ["node_modules", "dist", "./src/**/*.*"]
+  "exclude": ["node_modules", "dist", "out", "./src/**/*.*"]
 }

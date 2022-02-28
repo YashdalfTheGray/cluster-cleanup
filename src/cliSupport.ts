@@ -38,32 +38,32 @@ export function decorateClusterCleanup(
 
     instance.eventEmitter.on(ClusterCleanupEvents.servicesFound, (services) => {
       console.log('Found the following services');
-      console.log(chalk.cyan(services.join('\n')));
+      console.log(generateCliList(services));
     });
 
     instance.eventEmitter.on(
       ClusterCleanupEvents.servicesScaledDown,
       (services) => {
         console.log('Scaled down the following services to 0');
-        console.log(chalk.cyan(services.map((s) => s.serviceArn).join('\n')));
+        console.log(generateCliList(services.map((s) => s.serviceArn)));
       }
     );
 
     instance.eventEmitter.on(ClusterCleanupEvents.tasksFound, (tasks) => {
       console.log('Found the following tasks');
-      console.log(chalk.cyan(tasks.join('\n')));
+      console.log(generateCliList(tasks));
     });
 
     instance.eventEmitter.on(ClusterCleanupEvents.tasksStopped, (tasks) => {
       console.log('Stopped the following tasks');
-      console.log(chalk.cyan(tasks.map((t) => t.taskArn).join('\n')));
+      console.log(generateCliList(tasks.map((t) => t.taskArn)));
     });
 
     instance.eventEmitter.on(
       ClusterCleanupEvents.instancesFound,
       (instances) => {
         console.log('Found the following instances');
-        console.log(chalk.cyan(instances.join('\n')));
+        console.log(generateCliList(instances));
       }
     );
 
@@ -72,7 +72,7 @@ export function decorateClusterCleanup(
       (instances) => {
         console.log('Deregistered the following instances');
         console.log(
-          chalk.cyan(instances.map((i) => i.containerInstanceArn).join('\n'))
+          generateCliList(instances.map((i) => i.containerInstanceArn))
         );
       }
     );
@@ -81,7 +81,7 @@ export function decorateClusterCleanup(
       ClusterCleanupEvents.servicesDeleted,
       (services) => {
         console.log('Deleted the following services');
-        console.log(chalk.cyan(services.map((s) => s.serviceName).join('\n')));
+        console.log(generateCliList(services.map((s) => s.serviceArn)));
       }
     );
 
@@ -117,7 +117,7 @@ export function decorateClusterCleanup(
     instance.eventEmitter.on(ClusterCleanupEvents.clusterDeleted, (cluster) => {
       console.log(
         `${chalk.green('Successfully')} deleted cluster called ${chalk.cyan(
-          cluster
+          cluster.clusterArn
         )}`
       );
     });
@@ -128,4 +128,15 @@ export function decorateClusterCleanup(
   });
 
   return instance;
+}
+
+export function generateCliList<T extends Object>(
+  things: T[],
+  color = chalk.cyan,
+  stringifier?: (t: T) => string
+) {
+  return things
+    .map((t) => color(stringifier ? stringifier(t) : t.toString()))
+    .map((s) => `- ${s}`)
+    .join('\n');
 }

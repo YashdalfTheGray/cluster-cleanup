@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClusterCleanupEventEmitter = exports.ClusterCleanupEvents = void 0;
 const events_1 = require("events");
+const chalk = require("chalk");
 var ClusterCleanupEvents;
 (function (ClusterCleanupEvents) {
     ClusterCleanupEvents["start"] = "ClusterCleanup.start";
@@ -30,7 +31,7 @@ class ClusterCleanupEventEmitter {
     }
     emit(event, ...data) {
         if (this.verbose) {
-            console.log(`Emitting event ${event}`);
+            console.log(chalk.dim(`[ClusterCLeanupEvents] Emitting event ${event}`));
         }
         return this.events.emit(event, ...data);
     }

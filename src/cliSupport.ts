@@ -1,6 +1,34 @@
 import * as chalk from 'chalk';
+import { Command } from 'commander';
 
 import { ClusterCleanup, ClusterCleanupEvents } from '.';
+
+export function setupCliOptions(program: Command) {
+  return program
+    .version('2.1.0')
+    .requiredOption(
+      '-c, --cluster-name <name>',
+      'The name of the cluster to clean up'
+    )
+    .option('-s, --stack-name <name>', 'The name of the stack to clean up')
+    .option('-v, --verbose', 'Enable verbose logging')
+    .option(
+      '--include-fargate',
+      'Include Fargate tasks and services in the clean up'
+    )
+    .option('--aws-access-key-id <id>', 'AWS Access Key ID')
+    .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
+    .option('--aws-session-token <token>', 'AWS Session Token')
+    .option(
+      '--assume-role-arn <arn>',
+      'The ARN of the role to assume for permissions'
+    )
+    .option('--region <region>', 'The AWS region to use')
+    .option(
+      '--profile <profile>',
+      'The AWS profile to use, ignored if credentials or assume role arn is provided'
+    );
+}
 
 export function decorateClusterCleanup(
   instance: ClusterCleanup,

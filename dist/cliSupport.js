@@ -1,8 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateCliList = exports.decorateClusterCleanup = void 0;
+exports.generateCliList = exports.decorateClusterCleanup = exports.setupCliOptions = void 0;
 const chalk = require("chalk");
 const _1 = require(".");
+function setupCliOptions(program) {
+    return program
+        .version('2.1.0')
+        .requiredOption('-c, --cluster-name <name>', 'The name of the cluster to clean up')
+        .option('-s, --stack-name <name>', 'The name of the stack to clean up')
+        .option('-v, --verbose', 'Enable verbose logging')
+        .option('--include-fargate', 'Include Fargate tasks and services in the clean up')
+        .option('--aws-access-key-id <id>', 'AWS Access Key ID')
+        .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
+        .option('--aws-session-token <token>', 'AWS Session Token')
+        .option('--assume-role-arn <arn>', 'The ARN of the role to assume for permissions')
+        .option('--region <region>', 'The AWS region to use')
+        .option('--profile <profile>', 'The AWS profile to use, ignored if credentials or assume role arn is provided');
+}
+exports.setupCliOptions = setupCliOptions;
 function decorateClusterCleanup(instance, verbose = true) {
     instance.eventEmitter.on(_1.ClusterCleanupEvents.doneWithError, (e) => {
         console.log(chalk.red(e.message));

@@ -1,7 +1,12 @@
 import * as chalk from 'chalk';
 import { Command } from 'commander';
 
-import { ClusterCleanup, ClusterCleanupEvents } from '.';
+import {
+  ClusterCleanup,
+  ClusterCleanupConfig,
+  ClusterCleanupEvents,
+  KnownCliOptions,
+} from '.';
 
 export function setupCliOptions(program: Command) {
   return program
@@ -23,11 +28,15 @@ export function setupCliOptions(program: Command) {
       '--assume-role-arn <arn>',
       'The ARN of the role to assume for permissions'
     )
-    .option('--region <region>', 'The AWS region to use')
     .option(
-      '--profile <profile>',
+      '--external-id <id>',
+      'The external ID to provide STS for the assume role call'
+    )
+    .option(
+      '--aws-profile <profile>',
       'The AWS profile to use, ignored if credentials or assume role arn is provided'
-    );
+    )
+    .option('--region <region>', 'The AWS region to use');
 }
 
 export function decorateClusterCleanup(

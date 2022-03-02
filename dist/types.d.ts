@@ -10,3 +10,16 @@ export interface DeleteOptions {
     waiterPollMinDelayMs?: number;
     stackEventsPollIntervalMs?: number;
 }
+export interface KnownCliOptions {
+    clusterName: string;
+    stackName: string;
+    verbose: boolean;
+    includeFargate: boolean;
+    awsAccessKeyId: string;
+    awsSecretAccessKey: string;
+    awsSessionToken: string;
+    assumeRoleArn: string;
+    externalId: string;
+    awsProfile: string;
+    region: string;
+}

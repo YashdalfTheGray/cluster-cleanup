@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateCliList = exports.decorateClusterCleanup = exports.setupCliOptions = void 0;
+exports.generateCliList = exports.decorateClusterCleanup = exports.buildClientConfigObject = exports.setupCliOptions = void 0;
 const chalk = require("chalk");
 const _1 = require(".");
 function setupCliOptions(program) {
@@ -14,10 +14,40 @@ function setupCliOptions(program) {
         .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
         .option('--aws-session-token <token>', 'AWS Session Token')
         .option('--assume-role-arn <arn>', 'The ARN of the role to assume for permissions')
-        .option('--region <region>', 'The AWS region to use')
-        .option('--profile <profile>', 'The AWS profile to use, ignored if credentials or assume role arn is provided');
+        .option('--external-id <id>', 'The external ID to provide STS for the assume role call')
+        .option('--aws-profile <profile>', 'The AWS profile to use, ignored if credentials or assume role arn is provided')
+        .option('--region <region>', 'The AWS region to use');
 }
 exports.setupCliOptions = setupCliOptions;
+function buildClientConfigObject(cliOptions) {
+    const config = {
+        enableFargate: cliOptions.includeFargate,
+        region: cliOptions.region,
+    };
+    if (cliOptions.awsAccessKeyId && cliOptions.awsSecretAccessKey) {
+        if (cliOptions.awsSessionToken) {
+            config.credentials = {
+                accessKeyId: cliOptions.awsAccessKeyId,
+                secretAccessKey: cliOptions.awsSecretAccessKey,
+                sessionToken: cliOptions.awsSessionToken,
+            };
+        }
+        else if (cliOptions.assumeRoleArn) {
+            // assume from STS
+        }
+        else if (!cliOptions.awsProfile) {
+            config.credentials = {
+                accessKeyId: cliOptions.awsAccessKeyId,
+                secretAccessKey: cliOptions.awsSecretAccessKey,
+            };
+        }
+    }
+    if (cliOptions.awsProfile && !config.credentials) {
+        // get from shared ini file with particular profile
+    }
+    return config;
+}
+exports.buildClientConfigObject = buildClientConfigObject;
 function decorateClusterCleanup(instance, verbose = true) {
     instance.eventEmitter.on(_1.ClusterCleanupEvents.doneWithError, (e) => {
         console.log(chalk.red(e.message));

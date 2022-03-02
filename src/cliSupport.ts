@@ -39,6 +39,38 @@ export function setupCliOptions(program: Command) {
     .option('--region <region>', 'The AWS region to use');
 }
 
+export function buildClientConfigObject(
+  cliOptions: KnownCliOptions
+): ClusterCleanupConfig {
+  const config: ClusterCleanupConfig = {
+    enableFargate: cliOptions.includeFargate,
+    region: cliOptions.region,
+  };
+
+  if (cliOptions.awsAccessKeyId && cliOptions.awsSecretAccessKey) {
+    if (cliOptions.awsSessionToken) {
+      config.credentials = {
+        accessKeyId: cliOptions.awsAccessKeyId,
+        secretAccessKey: cliOptions.awsSecretAccessKey,
+        sessionToken: cliOptions.awsSessionToken,
+      };
+    } else if (cliOptions.assumeRoleArn) {
+      // assume from STS
+    } else if (!cliOptions.awsProfile) {
+      config.credentials = {
+        accessKeyId: cliOptions.awsAccessKeyId,
+        secretAccessKey: cliOptions.awsSecretAccessKey,
+      };
+    }
+  }
+
+  if (cliOptions.awsProfile && !config.credentials) {
+    // get from shared ini file with particular profile
+  }
+
+  return config;
+}
+
 export function decorateClusterCleanup(
   instance: ClusterCleanup,
   verbose = true

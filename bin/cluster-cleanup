@@ -1,31 +1,20 @@
 #!/usr/bin/env node
 
-const { ClusterCleanup, decorateClusterCleanup } = require('../dist');
+const { program } = require('commander');
 
-[
-  'AWS_ACCESS_KEY_ID',
-  'AWS_SECRET_ACCESS_KEY',
-  'AWS_SESSION_TOKEN',
-  'AWS_DEFAULT_REGION',
-].forEach((v) => {
-  if (!process.env[v]) {
-    throw new Error(`Missing environment variable: ${v}`);
-  }
-});
+const {
+  ClusterCleanup,
+  decorateClusterCleanup,
+  setupCliOptions,
+} = require('../dist');
 
-const config = {
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    sessionToken: process.env.AWS_SESSION_TOKEN,
-  },
-  region: process.env.AWS_DEFAULT_REGION,
-  enableFargate: true,
-};
+const configuredParser = setupCliOptions(program);
+configuredParser.parse();
+const options = configuredParser.opts();
+console.log(options);
 
-const cleaner = decorateClusterCleanup(new ClusterCleanup(config), true);
+// const config = { enableFargate: true };
 
-cleaner.deleteClusterAndResources(
-  process.env.ECS_CLUSTER,
-  process.env.CFN_STACK_NAME
-);
+// const cleaner = decorateClusterCleanup(new ClusterCleanup(config), true);
+
+// cleaner.deleteClusterAndResources();

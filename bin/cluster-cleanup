@@ -6,14 +6,16 @@ const {
   ClusterCleanup,
   decorateClusterCleanup,
   setupCliOptions,
+  buildClientConfigObject,
 } = require('../dist');
 
 const configuredParser = setupCliOptions(program);
 configuredParser.parse();
 const options = configuredParser.opts();
-console.log(options);
 
-// const config = { enableFargate: true };
+const config = buildClientConfigObject(options);
+
+console.log(config);
 
 // const cleaner = decorateClusterCleanup(new ClusterCleanup(config), true);
 

@@ -32,7 +32,7 @@ export class MockCleanup {
     this.launchTypes = [LaunchType.EC2];
     this.events = new ClusterCleanupEventEmitter();
 
-    if (config.enableFargate) {
+    if (config.includeFargate) {
       this.launchTypes.push(LaunchType.FARGATE);
     }
   }

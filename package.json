@@ -43,6 +43,7 @@
     "@aws-sdk/client-cloudformation": "~3.53.0",
     "@aws-sdk/client-ecs": "~3.53.0",
     "@aws-sdk/client-sts": "~3.53.0",
+    "@aws-sdk/credential-providers": "^3.53.0",
     "@types/lodash": "~4.14.165",
     "chalk": "~4.1.2",
     "commander": "~9.0.0",

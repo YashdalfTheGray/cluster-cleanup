@@ -1,5 +1,9 @@
 import * as chalk from 'chalk';
 import { Command } from 'commander';
+import {
+  fromTemporaryCredentials,
+  fromIni,
+} from '@aws-sdk/credential-providers';
 
 import {
   ClusterCleanup,
@@ -42,30 +46,51 @@ export function setupCliOptions(program: Command) {
 export function buildClientConfigObject(
   cliOptions: KnownCliOptions
 ): ClusterCleanupConfig {
+  const {
+    awsAccessKeyId: accessKeyId,
+    awsSecretAccessKey: secretAccessKey,
+    awsSessionToken: sessionToken,
+    assumeRoleArn,
+    externalId,
+    awsProfile: profile,
+    region,
+    includeFargate: enableFargate,
+  } = cliOptions;
+
   const config: ClusterCleanupConfig = {
-    enableFargate: cliOptions.includeFargate,
-    region: cliOptions.region,
+    enableFargate,
+    region,
   };
 
-  if (cliOptions.awsAccessKeyId && cliOptions.awsSecretAccessKey) {
-    if (cliOptions.awsSessionToken) {
-      config.credentials = {
-        accessKeyId: cliOptions.awsAccessKeyId,
-        secretAccessKey: cliOptions.awsSecretAccessKey,
-        sessionToken: cliOptions.awsSessionToken,
-      };
-    } else if (cliOptions.assumeRoleArn) {
-      // assume from STS
-    } else if (!cliOptions.awsProfile) {
-      config.credentials = {
-        accessKeyId: cliOptions.awsAccessKeyId,
-        secretAccessKey: cliOptions.awsSecretAccessKey,
-      };
-    }
-  }
+  if (accessKeyId && secretAccessKey && sessionToken) {
+    config.credentials = {
+      accessKeyId,
+      secretAccessKey,
+      sessionToken,
+    };
+  } else if (assumeRoleArn) {
+    const assumeRoleCreds = (() => {
+      if (accessKeyId && secretAccessKey) {
+        return { accessKeyId, secretAccessKey };
+      } else if (profile) {
+        return fromIni({ profile });
+      } else {
+        return undefined;
+      }
+    })();
 
-  if (cliOptions.awsProfile && !config.credentials) {
-    // get from shared ini file with particular profile
+    config.credentials = fromTemporaryCredentials({
+      masterCredentials: assumeRoleCreds,
+      params: {
+        RoleArn: assumeRoleArn,
+        ExternalId: externalId,
+        RoleSessionName: `clustercleanup-session-${Date.now()}`,
+        DurationSeconds: 3600,
+      },
+      clientConfig: { region },
+    });
+  } else if (profile) {
+    config.credentials = fromIni({ profile });
   }
 
   return config;

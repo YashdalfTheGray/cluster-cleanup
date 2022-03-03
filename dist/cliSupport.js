@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateCliList = exports.decorateClusterCleanup = exports.buildClientConfigObject = exports.setupCliOptions = void 0;
 const chalk = require("chalk");
+const credential_providers_1 = require("@aws-sdk/credential-providers");
 const _1 = require(".");
 function setupCliOptions(program) {
     return program
@@ -20,30 +21,43 @@ function setupCliOptions(program) {
 }
 exports.setupCliOptions = setupCliOptions;
 function buildClientConfigObject(cliOptions) {
+    const { awsAccessKeyId: accessKeyId, awsSecretAccessKey: secretAccessKey, awsSessionToken: sessionToken, assumeRoleArn, externalId, awsProfile: profile, region, includeFargate, } = cliOptions;
     const config = {
-        enableFargate: cliOptions.includeFargate,
-        region: cliOptions.region,
+        includeFargate,
+        region,
     };
-    if (cliOptions.awsAccessKeyId && cliOptions.awsSecretAccessKey) {
-        if (cliOptions.awsSessionToken) {
-            config.credentials = {
-                accessKeyId: cliOptions.awsAccessKeyId,
-                secretAccessKey: cliOptions.awsSecretAccessKey,
-                sessionToken: cliOptions.awsSessionToken,
-            };
-        }
-        else if (cliOptions.assumeRoleArn) {
-            // assume from STS
-        }
-        else if (!cliOptions.awsProfile) {
-            config.credentials = {
-                accessKeyId: cliOptions.awsAccessKeyId,
-                secretAccessKey: cliOptions.awsSecretAccessKey,
-            };
-        }
+    if (accessKeyId && secretAccessKey && sessionToken) {
+        config.credentials = {
+            accessKeyId,
+            secretAccessKey,
+            sessionToken,
+        };
     }
-    if (cliOptions.awsProfile && !config.credentials) {
-        // get from shared ini file with particular profile
+    else if (assumeRoleArn) {
+        const assumeRoleCreds = (() => {
+            if (accessKeyId && secretAccessKey) {
+                return { accessKeyId, secretAccessKey };
+            }
+            else if (profile) {
+                return (0, credential_providers_1.fromIni)({ profile });
+            }
+            else {
+                return undefined;
+            }
+        })();
+        config.credentials = (0, credential_providers_1.fromTemporaryCredentials)({
+            masterCredentials: assumeRoleCreds,
+            params: {
+                RoleArn: assumeRoleArn,
+                ExternalId: externalId,
+                RoleSessionName: `clustercleanup-session-${Date.now()}`,
+                DurationSeconds: 3600,
+            },
+            clientConfig: { region },
+        });
+    }
+    else if (profile) {
+        config.credentials = (0, credential_providers_1.fromIni)({ profile });
     }
     return config;
 }

@@ -43,7 +43,7 @@ export class ClusterCleanup {
     private cloudFormation = new CloudFormation(config),
     private events = new ClusterCleanupEventEmitter(),
     private launchTypes = [LaunchType.EC2].concat(
-      config.enableFargate ? [LaunchType.FARGATE] : []
+      config.includeFargate ? [LaunchType.FARGATE] : []
     )
   ) {}
 

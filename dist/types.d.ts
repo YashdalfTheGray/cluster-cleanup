@@ -2,7 +2,7 @@ import { ECSClientConfig } from '@aws-sdk/client-ecs';
 export declare type Listener<T> = (data: T) => void;
 export declare type RemoveListenerFunction = () => void;
 export interface ClusterCleanupConfig extends ECSClientConfig {
-    enableFargate?: boolean;
+    includeFargate?: boolean;
 }
 export interface DeleteOptions {
     verbose?: boolean;

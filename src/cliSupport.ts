@@ -54,11 +54,11 @@ export function buildClientConfigObject(
     externalId,
     awsProfile: profile,
     region,
-    includeFargate: enableFargate,
+    includeFargate,
   } = cliOptions;
 
   const config: ClusterCleanupConfig = {
-    enableFargate,
+    includeFargate,
     region,
   };
 

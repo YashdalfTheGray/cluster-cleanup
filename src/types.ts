@@ -4,7 +4,7 @@ export type Listener<T> = (data: T) => void;
 export type RemoveListenerFunction = () => void;
 
 export interface ClusterCleanupConfig extends ECSClientConfig {
-  enableFargate?: boolean;
+  includeFargate?: boolean;
 }
 
 export interface DeleteOptions {

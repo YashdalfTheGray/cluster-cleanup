@@ -12,7 +12,7 @@ class ClusterCleanup {
     launchTypes;
     TEN_MINUTES_IN_MS = 10 * 60 * 1000;
     THIRTY_SECONDS_IN_MS = 30 * 1000;
-    constructor(config, ecs = new client_ecs_1.ECS(config), cloudFormation = new client_cloudformation_1.CloudFormation(config), events = new _1.ClusterCleanupEventEmitter(), launchTypes = [client_ecs_1.LaunchType.EC2].concat(config.enableFargate ? [client_ecs_1.LaunchType.FARGATE] : [])) {
+    constructor(config, ecs = new client_ecs_1.ECS(config), cloudFormation = new client_cloudformation_1.CloudFormation(config), events = new _1.ClusterCleanupEventEmitter(), launchTypes = [client_ecs_1.LaunchType.EC2].concat(config.includeFargate ? [client_ecs_1.LaunchType.FARGATE] : [])) {
         this.ecs = ecs;
         this.cloudFormation = cloudFormation;
         this.events = events;

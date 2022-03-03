@@ -5,7 +5,7 @@ import { MockCleanup } from '../mocks';
 
 test('cleanup events are fired as expected', async (t) => {
   const mockCleanup = new MockCleanup({
-    enableFargate: true,
+    includeFargate: true,
   });
   const eventEmitter = mockCleanup.eventEmitter;
   const seenEvents = new Set();

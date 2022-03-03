@@ -12,7 +12,7 @@ test('cleanup goes through all the motions', async (t) => {
   });
 
   const cleanup = new ClusterCleanup(
-    { enableFargate: true },
+    { includeFargate: true },
     mockAwsClient as unknown as ECS,
     mockAwsClient as unknown as CloudFormation
   );

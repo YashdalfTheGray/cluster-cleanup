@@ -3,7 +3,7 @@ FROM node:latest
 RUN mkdir /app
 WORKDIR /app
 
-COPY package.json package-lock.json /app/
+COPY package.json package-lock.json tsconfig.json /app/
 
 RUN npm install
 

@@ -37,9 +37,7 @@ async () => {
 };
 ```
 
-The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object but adds another optional property called `includeFargate`. This will make ClusterManager look for AWS Fargate services and tasks in addition to EC2 services while deleting the cluster.
-
-Additionally, this also takes initialized clients for ECS and CloudFormation if you don't want `ClusterCleanup` to create new clients.
+The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object.The constructor, optionally, can also take initialized clients for ECS and CloudFormation if you don't want `ClusterCleanup` to create new clients.
 
 The `deleteClusterAndResources` function can optionally take an object with the following properties
 

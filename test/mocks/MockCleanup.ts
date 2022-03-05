@@ -29,12 +29,8 @@ export class MockCleanup {
   private events: ClusterCleanupEventEmitter;
 
   public constructor(config?: ClusterCleanupConfig) {
-    this.launchTypes = [LaunchType.EC2];
+    this.launchTypes = [LaunchType.EC2, LaunchType.FARGATE];
     this.events = new ClusterCleanupEventEmitter();
-
-    if (config.includeFargate) {
-      this.launchTypes.push(LaunchType.FARGATE);
-    }
   }
 
   public get eventEmitter() {

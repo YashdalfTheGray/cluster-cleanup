@@ -4,9 +4,7 @@ import { ClusterCleanupEvents } from '../../src';
 import { MockCleanup } from '../mocks';
 
 test('cleanup events are fired as expected', async (t) => {
-  const mockCleanup = new MockCleanup({
-    includeFargate: true,
-  });
+  const mockCleanup = new MockCleanup({});
   const eventEmitter = mockCleanup.eventEmitter;
   const seenEvents = new Set();
 

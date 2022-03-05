@@ -21,10 +21,6 @@ export function setupCliOptions(program: Command) {
     )
     .option('-s, --stack-name <name>', 'The name of the stack to clean up')
     .option('-v, --verbose', 'Enable verbose logging')
-    .option(
-      '--include-fargate',
-      'Include Fargate tasks and services in the clean up'
-    )
     .option('--aws-access-key-id <id>', 'AWS Access Key ID')
     .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
     .option('--aws-session-token <token>', 'AWS Session Token')
@@ -54,11 +50,9 @@ export function buildClientConfigObject(
     externalId,
     awsProfile: profile,
     region,
-    includeFargate,
   } = cliOptions;
 
   const config: ClusterCleanupConfig = {
-    includeFargate,
     region,
   };
 

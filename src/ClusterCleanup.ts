@@ -42,9 +42,7 @@ export class ClusterCleanup {
     private ecs: ECS = new ECS(config),
     private cloudFormation = new CloudFormation(config),
     private events = new ClusterCleanupEventEmitter(),
-    private launchTypes = [LaunchType.EC2].concat(
-      config.includeFargate ? [LaunchType.FARGATE] : []
-    )
+    private launchTypes = [LaunchType.EC2, LaunchType.FARGATE]
   ) {}
 
   public get eventEmitter() {

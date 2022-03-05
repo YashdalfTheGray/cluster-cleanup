@@ -1,9 +1,8 @@
 import { ECSClientConfig } from '@aws-sdk/client-ecs';
+import { CloudFormationClientConfig } from '@aws-sdk/client-cloudformation';
 export declare type Listener<T> = (data: T) => void;
 export declare type RemoveListenerFunction = () => void;
-export interface ClusterCleanupConfig extends ECSClientConfig {
-    includeFargate?: boolean;
-}
+export declare type ClusterCleanupConfig = ECSClientConfig | CloudFormationClientConfig;
 export interface DeleteOptions {
     verbose?: boolean;
     waiterTimeoutMs?: number;
@@ -14,7 +13,6 @@ export interface KnownCliOptions {
     clusterName: string;
     stackName: string;
     verbose: boolean;
-    includeFargate: boolean;
     awsAccessKeyId: string;
     awsSecretAccessKey: string;
     awsSessionToken: string;

@@ -10,7 +10,6 @@ function setupCliOptions(program) {
         .requiredOption('-c, --cluster-name <name>', 'The name of the cluster to clean up')
         .option('-s, --stack-name <name>', 'The name of the stack to clean up')
         .option('-v, --verbose', 'Enable verbose logging')
-        .option('--include-fargate', 'Include Fargate tasks and services in the clean up')
         .option('--aws-access-key-id <id>', 'AWS Access Key ID')
         .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
         .option('--aws-session-token <token>', 'AWS Session Token')
@@ -21,9 +20,8 @@ function setupCliOptions(program) {
 }
 exports.setupCliOptions = setupCliOptions;
 function buildClientConfigObject(cliOptions) {
-    const { awsAccessKeyId: accessKeyId, awsSecretAccessKey: secretAccessKey, awsSessionToken: sessionToken, assumeRoleArn, externalId, awsProfile: profile, region, includeFargate, } = cliOptions;
+    const { awsAccessKeyId: accessKeyId, awsSecretAccessKey: secretAccessKey, awsSessionToken: sessionToken, assumeRoleArn, externalId, awsProfile: profile, region, } = cliOptions;
     const config = {
-        includeFargate,
         region,
     };
     if (accessKeyId && secretAccessKey && sessionToken) {

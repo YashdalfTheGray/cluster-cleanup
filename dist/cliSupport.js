@@ -5,11 +5,14 @@ const chalk = require("chalk");
 const credential_providers_1 = require("@aws-sdk/credential-providers");
 const _1 = require(".");
 function setupCliOptions(program) {
+    function increaseVerbosity(_, previousValue) {
+        return previousValue + 1;
+    }
     return program
         .version('2.1.0')
         .requiredOption('-c, --cluster-name <name>', 'The name of the cluster to clean up')
         .option('-s, --stack-name <name>', 'The name of the stack to clean up')
-        .option('-v, --verbose', 'Enable verbose logging')
+        .option('-v, --verbose', 'Enable verbose logging, can be specified multiple times increasing verbosity', increaseVerbosity, 0)
         .option('--aws-access-key-id <id>', 'AWS Access Key ID')
         .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
         .option('--aws-session-token <token>', 'AWS Session Token')
@@ -60,7 +63,7 @@ function buildClientConfigObject(cliOptions) {
     return config;
 }
 exports.buildClientConfigObject = buildClientConfigObject;
-function decorateClusterCleanup(instance, verbose = true) {
+function decorateClusterCleanup(instance, verbose = 0) {
     instance.eventEmitter.on(_1.ClusterCleanupEvents.doneWithError, (e) => {
         console.log(chalk.red(e.message));
         console.error(e);
@@ -68,13 +71,16 @@ function decorateClusterCleanup(instance, verbose = true) {
     });
     instance.eventEmitter.on(_1.ClusterCleanupEvents.error, (e) => {
         console.log(chalk.red(e.message));
-        console.error(e);
+        console.log(chalk.dim('Skipping error stacktrace, run with -vv to see it.'));
+        if (verbose >= 2) {
+            console.error(e);
+        }
     });
     instance.eventEmitter.on(_1.ClusterCleanupEvents.start, (clusterName) => console.log(`Starting cleanup of cluster ${chalk.cyan(clusterName)}`));
     instance.eventEmitter.on(_1.ClusterCleanupEvents.done, (clusterName) => {
         console.log(`${chalk.green('Successfully')} cleaned up resources for cluster ${chalk.cyan(clusterName)}`);
     });
-    if (verbose) {
+    if (verbose >= 1) {
         instance.eventEmitter.on(_1.ClusterCleanupEvents.stackFound, (stack) => {
             console.log(`Found stack for cluster by name ${chalk.cyan(stack.StackName)}`);
         });

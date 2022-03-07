@@ -10,7 +10,7 @@ export declare class ClusterCleanup {
     private THIRTY_SECONDS_IN_MS;
     constructor(config?: ClusterCleanupConfig, ecs?: ECS, cloudFormation?: CloudFormation, events?: ClusterCleanupEventEmitter, launchTypes?: LaunchType[]);
     get eventEmitter(): ClusterCleanupEventEmitter;
-    deleteClusterAndResources(clusterName: string, stackName?: string, verbose?: boolean, options?: DeleteOptions): Promise<string[]>;
+    deleteClusterAndResources(clusterName: string, stackName?: string, verbose?: number, options?: DeleteOptions): Promise<string[]>;
     private deleteHelper;
     private describeCluster;
     private doesClusterExist;

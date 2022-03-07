@@ -21,7 +21,7 @@ class ClusterCleanup {
     get eventEmitter() {
         return this.events;
     }
-    async deleteClusterAndResources(clusterName, stackName = `EC2ContainerService-${clusterName}`, verbose = false, options = {
+    async deleteClusterAndResources(clusterName, stackName = `EC2ContainerService-${clusterName}`, verbose = 0, options = {
         waiterTimeoutMs: this.TEN_MINUTES_IN_MS,
         waiterPollMinDelayMs: this.THIRTY_SECONDS_IN_MS,
         stackEventsPollIntervalMs: this.THIRTY_SECONDS_IN_MS,
@@ -42,7 +42,7 @@ class ClusterCleanup {
         // 9. poll CloudFormation until stack deleted
         // 10. delete cluster
         let startTime;
-        if (verbose) {
+        if (verbose >= 2) {
             startTime = Date.now();
         }
         this.events.emit(_1.ClusterCleanupEvents.start, clusterName);
@@ -111,7 +111,7 @@ class ClusterCleanup {
             cleanedUpResources.push(deletedCluster.clusterArn);
             this.events.emit(_1.ClusterCleanupEvents.done, clusterName);
         }
-        if (verbose) {
+        if (verbose >= 2) {
             console.log(`Deleting cluster ${clusterName} took ${(Date.now() - startTime) / 1000}s.`);
         }
         return cleanedUpResources;

@@ -25,12 +25,12 @@ var ClusterCleanupEvents;
 class ClusterCleanupEventEmitter {
     events;
     verbose;
-    constructor(verbose = false) {
+    constructor(verbose = 0) {
         this.events = new events_1.EventEmitter();
         this.verbose = verbose;
     }
     emit(event, ...data) {
-        if (this.verbose) {
+        if (this.verbose >= 2) {
             console.log(chalk.dim(`[ClusterCLeanupEvents] Emitting event ${event}`));
         }
         return this.events.emit(event, ...data);

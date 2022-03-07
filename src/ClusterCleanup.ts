@@ -52,21 +52,22 @@ export class ClusterCleanup {
   public async deleteClusterAndResources(
     clusterName: string,
     stackName = `EC2ContainerService-${clusterName}`,
+    verbose = false,
     options: DeleteOptions = {
-      verbose: false,
       waiterTimeoutMs: this.TEN_MINUTES_IN_MS,
       waiterPollMinDelayMs: this.THIRTY_SECONDS_IN_MS,
       stackEventsPollIntervalMs: this.THIRTY_SECONDS_IN_MS,
     }
   ): Promise<string[]> {
-    this.events.verbose = options.verbose;
+    this.events.verbose = verbose;
 
-    return this.deleteHelper(clusterName, stackName, options);
+    return this.deleteHelper(clusterName, stackName, verbose, options);
   }
 
   private async deleteHelper(
     clusterName: string,
     stackName?: string,
+    verbose?: boolean,
     options: DeleteOptions = {}
   ): Promise<string[]> {
     const cleanedUpResources = [];
@@ -83,7 +84,7 @@ export class ClusterCleanup {
     // 10. delete cluster
     let startTime: number;
 
-    if (options.verbose) {
+    if (verbose) {
       startTime = Date.now();
     }
 
@@ -187,7 +188,7 @@ export class ClusterCleanup {
       this.events.emit(ClusterCleanupEvents.done, clusterName);
     }
 
-    if (options.verbose) {
+    if (verbose) {
       console.log(
         `Deleting cluster ${clusterName} took ${
           (Date.now() - startTime) / 1000

@@ -20,8 +20,8 @@ test('cleanup goes through all the motions', async (t) => {
   const cleanedUpResources = await cleanup.deleteClusterAndResources(
     'active-test-cluster',
     'test-stack',
+    false,
     {
-      verbose: false,
       waiterTimeoutMs: 2000,
       stackEventsPollIntervalMs: 100,
       waiterPollMinDelayMs: 1000,

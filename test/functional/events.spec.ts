@@ -4,6 +4,8 @@ import { ClusterCleanupEvents } from '../../src';
 import { MockCleanup } from '../mocks';
 
 test('cleanup events are fired as expected', async (t) => {
+  const NOT_VERBOSE = 0;
+
   const mockCleanup = new MockCleanup({});
   const eventEmitter = mockCleanup.eventEmitter;
   const seenEvents = new Set();
@@ -18,7 +20,7 @@ test('cleanup events are fired as expected', async (t) => {
   const cleanedUpResources = await mockCleanup.deleteClusterAndResources(
     'test-cluster',
     'test-stack',
-    false,
+    NOT_VERBOSE,
     {
       mock: {
         stack: {

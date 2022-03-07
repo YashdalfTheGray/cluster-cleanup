@@ -7,7 +7,6 @@ export type RemoveListenerFunction = () => void;
 export type ClusterCleanupConfig = ECSClientConfig | CloudFormationClientConfig;
 
 export interface DeleteOptions {
-  verbose?: boolean;
   waiterTimeoutMs?: number;
   waiterPollMinDelayMs?: number;
   stackEventsPollIntervalMs?: number;

@@ -18,8 +18,8 @@ test('cleanup events are fired as expected', async (t) => {
   const cleanedUpResources = await mockCleanup.deleteClusterAndResources(
     'test-cluster',
     'test-stack',
+    false,
     {
-      // verbose: true,
       mock: {
         stack: {
           StackId: 'test-stack-arn',

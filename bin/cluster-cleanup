@@ -7,16 +7,29 @@ const {
   decorateClusterCleanup,
   setupCliOptions,
   buildClientConfigObject,
+  generateCliList,
 } = require('../dist');
 
 const configuredParser = setupCliOptions(program);
 configuredParser.parse();
+
 const options = configuredParser.opts();
 
+const { clusterName, stackName, verbose } = options;
+
 const config = buildClientConfigObject(options);
+const cleaner = decorateClusterCleanup(
+  new ClusterCleanup(config),
+  options.verbose
+);
 
-console.log(config);
+(async () => {
+  const cleanedUp = cleaner.deleteClusterAndResources(
+    clusterName,
+    stackName,
+    verbose
+  );
 
-// const cleaner = decorateClusterCleanup(new ClusterCleanup(config), true);
-
-// cleaner.deleteClusterAndResources();
+  console.log(`Cleaned up the following resources`);
+  console.log(generateCliList(cleanedUp));
+})();

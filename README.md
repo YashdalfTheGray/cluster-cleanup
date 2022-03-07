@@ -39,9 +39,8 @@ async () => {
 
 The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object.The constructor, optionally, can also take initialized clients for ECS and CloudFormation if you don't want `ClusterCleanup` to create new clients.
 
-The `deleteClusterAndResources` function can optionally take an object with the following properties
+The `deleteClusterAndResources` function can be provided a stack name as well as a verbose option. Additionally, it take an object with the following properties as the last argument,
 
-- a property called `verbose` which will log out every event coming from cluster cleanup process, defaults to `false`
 - a property called `waiterTimeoutMs` which is the timeout in milliseconds for the AWS SDK waiter to wait for the CloudFormation stack to be deleted, defaults to 10 minutes
 - a property called `waiterPollMinDelayMs` which is the minimum delay in milliseconds between each run of `cloudformation::describeStacks` with the stack being deleted, defaults to 30 seconds
 - a property called `stackEventsPollIntervalMs` which is the interval in milliseconds between each run of `cloudformation::describeStackEvents` for the stack being deleted, defaults to 30 seconds
@@ -90,5 +89,7 @@ All of this information is also surfaced via typings that are included in this l
 ## ClI Support
 
 This package also vends a decorator that listens to all the events and logs out everything (with some color using `chalk`) to the console. This is meant to make creating an executable file that runs this script a bit better and remove duplication of code.
+
+This package also includes an executable that uses the CLI suppport functions to allow users to configure and run the cluster cleanup script. Run `./bin/cluster-cleanup --help` to see all the configuration options.
 
 Issue and PR templates derived from [smhxx/atom-ts-transpiler](https://github.com/smhxx/atom-ts-transpiler).

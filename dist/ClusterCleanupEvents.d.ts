@@ -21,8 +21,8 @@ export declare enum ClusterCleanupEvents {
 }
 export declare class ClusterCleanupEventEmitter {
     private events;
-    verbose: boolean;
-    constructor(verbose?: boolean);
+    verbose: number;
+    constructor(verbose?: number);
     emit(event: ClusterCleanupEvents.start, cluster: string): boolean;
     emit(event: ClusterCleanupEvents.done, cluster: string): boolean;
     emit(event: ClusterCleanupEvents.doneWithError, err: Error): boolean;

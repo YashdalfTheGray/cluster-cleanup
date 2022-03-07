@@ -11,7 +11,7 @@ export interface DeleteOptions {
 export interface KnownCliOptions {
     clusterName: string;
     stackName: string;
-    verbose: boolean;
+    verbose: number;
     awsAccessKeyId: string;
     awsSecretAccessKey: string;
     awsSessionToken: string;

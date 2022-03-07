@@ -6,6 +6,8 @@ import { ClusterCleanup } from '../../src';
 import { MockAwsClient } from '../mocks';
 
 test('cleanup goes through all the motions', async (t) => {
+  const NOT_VERBOSE = 0;
+
   const seenCommands = [];
   const mockAwsClient = new MockAwsClient((command) => {
     seenCommands.push(command);
@@ -20,7 +22,7 @@ test('cleanup goes through all the motions', async (t) => {
   const cleanedUpResources = await cleanup.deleteClusterAndResources(
     'active-test-cluster',
     'test-stack',
-    false,
+    NOT_VERBOSE,
     {
       waiterTimeoutMs: 2000,
       stackEventsPollIntervalMs: 100,

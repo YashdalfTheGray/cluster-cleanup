@@ -27,9 +27,9 @@ export enum ClusterCleanupEvents {
 
 export class ClusterCleanupEventEmitter {
   private events: EventEmitter;
-  verbose: boolean;
+  verbose: number;
 
-  public constructor(verbose: boolean = false) {
+  public constructor(verbose = 0) {
     this.events = new EventEmitter();
     this.verbose = verbose;
   }
@@ -81,7 +81,7 @@ export class ClusterCleanupEventEmitter {
     event: E,
     ...data: D
   ): boolean {
-    if (this.verbose) {
+    if (this.verbose >= 2) {
       console.log(chalk.dim(`[ClusterCLeanupEvents] Emitting event ${event}`));
     }
     return this.events.emit(event, ...data);

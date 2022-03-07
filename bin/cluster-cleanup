@@ -24,7 +24,7 @@ const cleaner = decorateClusterCleanup(
 );
 
 (async () => {
-  const cleanedUp = cleaner.deleteClusterAndResources(
+  const cleanedUp = await cleaner.deleteClusterAndResources(
     clusterName,
     stackName,
     verbose

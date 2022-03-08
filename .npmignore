@@ -1,14 +1,19 @@
 # Project files
 
 src/**/*.ts
+out/**/*.*
+test/**/*.*
 .github/**/*
 .travis.yml
 tsconfig.json
+tsconfig.mocks.json
 .vscode/**/*
 test.js
 ava.config.js
 .prettierrc
 .nvmrc
+.dockerignore
+Dockerfile
 
 # Logs
 

@@ -22,6 +22,12 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 
 ## Usage
 
+### CLI
+
+Run `npm install --global cluster-cleanup` to install the CLI. Once installed, run `cluster-cleanup --help` to learn about all the options. This CLI interfaces with AWS so credentials are required. The CLI can use credentials already configured from AWS CLI, there are options to pass in an assume role ARN (and an external ID) or to use a profile.
+
+### Library usage
+
 Run `npm install cluster-cleanup` to pull down the package. Require it in your code, and create an instance of the `ClusterCleanup` class which can be passed the same config object as the AWS SDK. You can then use it to delete clusters completely including the resources that come with ECS clusters. Sample code below.
 
 ```javascript

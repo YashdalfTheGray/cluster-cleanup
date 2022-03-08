@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "cluster-cleanup": "bin/cluster-cleanup"
+    "cluster-cleanup": "./bin/cluster-cleanup"
   },
   "scripts": {
     "test": "nyc ava",

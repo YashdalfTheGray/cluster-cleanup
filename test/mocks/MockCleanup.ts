@@ -10,10 +10,10 @@ import {
   ClusterCleanupConfig,
   ClusterCleanupEventEmitter,
   ClusterCleanupEvents,
-  DeleteOptions,
+  TimeoutOptions,
 } from '../../src';
 
-export interface MockDeleteOptions extends DeleteOptions {
+export interface MockOptions extends TimeoutOptions {
   mock: {
     stack: Stack;
     stackEvents: StackEvent[];
@@ -41,7 +41,7 @@ export class MockCleanup {
     clusterName: string,
     stackName = `EC2ContainerService-${clusterName}`,
     verbose = 0,
-    options: Partial<MockDeleteOptions> = {}
+    options: Partial<MockOptions> = {}
   ): Promise<string[]> {
     this.events.verbose = verbose;
 
@@ -52,7 +52,7 @@ export class MockCleanup {
     clusterName: string,
     stackName?: string,
     verbose = 0,
-    options: Partial<MockDeleteOptions> = {}
+    options: Partial<MockOptions> = {}
   ): Promise<string[]> {
     const cleanedUpResources = [];
     const { stack, stackEvents, services, containerInstances, tasks, cluster } =

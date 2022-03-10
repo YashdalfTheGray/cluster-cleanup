@@ -30,7 +30,7 @@ import {
   ClusterCleanupEventEmitter,
   ClusterCleanupEvents,
   ClusterCleanupConfig,
-  DeleteOptions,
+  TimeoutOptions,
 } from '.';
 
 export class ClusterCleanup {
@@ -53,7 +53,7 @@ export class ClusterCleanup {
     clusterName: string,
     stackName = `EC2ContainerService-${clusterName}`,
     verbose = 0,
-    options: DeleteOptions = {
+    options: TimeoutOptions = {
       waiterTimeoutMs: this.TEN_MINUTES_IN_MS,
       waiterPollMinDelayMs: this.THIRTY_SECONDS_IN_MS,
       stackEventsPollIntervalMs: this.THIRTY_SECONDS_IN_MS,
@@ -68,7 +68,7 @@ export class ClusterCleanup {
     clusterName: string,
     stackName?: string,
     verbose?: number,
-    options: DeleteOptions = {}
+    options: TimeoutOptions = {}
   ): Promise<string[]> {
     const cleanedUpResources = [];
 

@@ -3,7 +3,7 @@ import { CloudFormationClientConfig } from '@aws-sdk/client-cloudformation';
 export declare type Listener<T> = (data: T) => void;
 export declare type RemoveListenerFunction = () => void;
 export declare type ClusterCleanupConfig = ECSClientConfig | CloudFormationClientConfig;
-export interface DeleteOptions {
+export interface TimeoutOptions {
     waiterTimeoutMs?: number;
     waiterPollMinDelayMs?: number;
     stackEventsPollIntervalMs?: number;

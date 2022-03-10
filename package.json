@@ -1,6 +1,6 @@
 {
   "name": "cluster-cleanup",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Library to fill the gap between the SDK and the CLI/Console for deleting an ECS cluster",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

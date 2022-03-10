@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [3.0.0](https://github.com/YashdalfTheGray/cluster-cleanup/tree/v3.0.0) (2022-03-09)
+
+### BREAKING CHANGES
+
+- The `ClusterCleanup` class can take AWS service clients as arguments.
+- The `ClusterCleanupEvents` uses standard `on` and `emit` methods with type overloads.
+- The `ClusterCleanup::deleteClusterAndResources` function is now async and returns a list of cleaned up resources.
+- The `ClusterCleanup::deleteClusterAndResources` function now takes an optional stack name and a verbosity level. Additionally, it takes an options object that you can use to tune the timings.
+- Verbosity across the library is now an integer and can range from 0 to 2, inclusive.
+
+### Added
+
+- Added a CLI support script and changed the API to support using a CLI.
+- Added a script that supports `npm install --global` executable script.
+- Added running under Docker support.
+- Updated versions of packages.
+
 ## [v2.1.0](https://github.com/YashdalfTheGray/cluster-cleanup/tree/v2.1.0) (2021-09-17)
 
 ### Added

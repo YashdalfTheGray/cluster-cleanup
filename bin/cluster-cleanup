@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { program } = require('commander');
+const chalk = require('chalk');
 
 const {
   ClusterCleanup,
@@ -15,8 +16,9 @@ configuredParser.parse();
 
 const options = configuredParser.opts();
 
-const { clusterName, stackName, verbose } = options;
+const { clusterName, stackName, verbose, color } = options;
 
+chalk.level = color ? 3 : 0;
 const config = buildClientConfigObject(options);
 const cleaner = decorateClusterCleanup(
   new ClusterCleanup(config),

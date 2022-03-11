@@ -2,7 +2,7 @@
 
 # cluster-cleanup
 
-Library to fill the gap between the SDK and the CLI/Console for deleting an ECS cluster.
+Library to fill the gap between the SDK and the CLI/Console for deleting an ECS cluster. Also comes with a CLI as of version 3.0.0!
 
 ## What does this do?
 
@@ -24,7 +24,9 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 
 ### CLI
 
-Run `npm install --global cluster-cleanup` to install the CLI. Once installed, run `cluster-cleanup --help` to learn about all the options. This CLI interfaces with AWS so credentials are required. The CLI can use credentials already configured from AWS CLI, there are options to pass in an assume role ARN (and an external ID) or to use a profile.
+Run `npm install --global cluster-cleanup` to install the CLI. Once installed, run `cluster-cleanup --help` to learn about all the options. This CLI interfaces with AWS so credentials are required. The CLI can use credentials already configured from AWS CLI, and there are options to pass in an assume role ARN (and an external ID) or to use a profile.
+
+You can also just pass in the credentials themselves. It is done this way to support multiple entrypoints for credentials, somewhat modeled after the AWS CLI/SDK behavior.
 
 ### Library usage
 
@@ -37,15 +39,16 @@ const clusterCleanup = new ClusterCleanup();
 const events = clusterCleanup.eventEmitter;
 
 async () => {
-  const events = clusterCleanup.deleteClusterAndResources('default');
+  const deletedResources = clusterCleanup.deleteClusterAndResources('default');
 
   events.on(ClusterCleanupEvents.error, (e) => console.error(e));
+  events.on(ClusterCleanupEvents.done, () => console.log('Done'));
 };
 ```
 
-The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object.The constructor, optionally, can also take initialized clients for ECS and CloudFormation if you don't want `ClusterCleanup` to create new clients.
+The `ClusterCleanup` constructor takes the standard AWS SDK for Node.js options object. The constructor, optionally, can also take initialized clients for ECS and CloudFormation if you don't want `ClusterCleanup` to create new clients.
 
-The `deleteClusterAndResources` function can be provided a stack name as well as a verbose option. Additionally, it take an object with the following properties as the last argument,
+The `deleteClusterAndResources` function can be provided a stack name (2nd argument) as well as a verbose option as a number (3rd argument). Additionally, it take an object with the following properties as the last argument,
 
 - a property called `waiterTimeoutMs` which is the timeout in milliseconds for the AWS SDK waiter to wait for the CloudFormation stack to be deleted, defaults to 10 minutes
 - a property called `waiterPollMinDelayMs` which is the minimum delay in milliseconds between each run of `cloudformation::describeStacks` with the stack being deleted, defaults to 30 seconds
@@ -53,9 +56,11 @@ The `deleteClusterAndResources` function can be provided a stack name as well as
 
 We call `cloudformation::describeStackEvents` so that we can get information on the cleanup of the resources specified by the stack. We set up a waiter that uses `cloudformation::describeStacks` to wait for the stack being deleted.
 
+All of the arguments besides the cluster name are optional.
+
 ## Events
 
-The `events` instance returned from the `ClusterCleanup.events` getter call inherits from the Node.js `EventEmitter` and adds override type signatures to the `on` method to increase visibility into what events are emitted and what data goes along with each event. The `on` function also returns a function that can be called to remove the listener. The events and the expected data passed to the listener are listed below.
+The `events` instance returned from the `ClusterCleanup.events` getter call inherits from the Node.js `EventEmitter` and adds override type signatures to the `on` method to increase visibility into what events are emitted and what data goes along with each event. Calling `on` also returns a function that can be called to remove the listener. The events and the expected data passed to the listener are listed below.
 
 | Event                   | Data and Type                        |
 | ----------------------- | ------------------------------------ |

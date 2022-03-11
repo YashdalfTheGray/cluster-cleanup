@@ -18,7 +18,7 @@ export function setupCliOptions(program: Command) {
   }
 
   return program
-    .version('2.1.0')
+    .version('3.0.0')
     .requiredOption(
       '-c, --cluster-name <name>',
       'The name of the cluster to clean up'
@@ -30,6 +30,8 @@ export function setupCliOptions(program: Command) {
       increaseVerbosity,
       0
     )
+    .option('--color', 'Enable colorized output', true)
+    .option('--no-color', 'Disable colorized output')
     .option('--aws-access-key-id <id>', 'AWS Access Key ID')
     .option('--aws-secret-access-key <key>', 'AWS Secret Access Key')
     .option('--aws-session-token <token>', 'AWS Session Token')

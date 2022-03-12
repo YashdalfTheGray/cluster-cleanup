@@ -26,7 +26,7 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 
 Run `npm install --global cluster-cleanup` to install the CLI. Once installed, run `cluster-cleanup --help` to learn about all the options. This CLI interfaces with AWS so credentials are required. The CLI can use credentials already configured from AWS CLI, and there are options to pass in an assume role ARN (and an external ID) or to use a profile.
 
-You can also just pass in the credentials themselves. It is done this way to support multiple entrypoints for credentials, somewhat modeled after the AWS CLI/SDK behavior.
+You can also just pass in the credentials themselves. It is done this way to support multiple entrypoints for credentials, somewhat modeled after the AWS CLI/SDK behavior. There is also a `--no-color` option to disable color output, in case the logs need to be captured and parsed.
 
 ### Library usage
 

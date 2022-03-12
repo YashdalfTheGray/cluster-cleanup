@@ -1,4 +1,5 @@
 [![Build and test](https://github.com/YashdalfTheGray/cluster-cleanup/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/YashdalfTheGray/cluster-cleanup/actions/workflows/build-and-test.yml)
+![npm package](https://img.shields.io/npm/v/cluster-cleanup?label=npm%20package)
 
 # cluster-cleanup
 

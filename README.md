@@ -23,6 +23,30 @@ The CLI and the ECS Console go through about 9 steps to clean up an ECS cluster 
 
 ## Usage
 
+### Docker
+
+This code, built and ready to go, is available through DockerHub. You can pull this container image using `docker pull yashdalfthegray/cluster-cleanup`. You can also just run the container directly by `docker run -it yashdalfthegray/cluster-cleanup`. You can pass all of the CLI options into the container. Some examples are listed below.
+
+To cleanup a cluster named `spiderman` in the `ap-northeast-1` region using credentials from the host environment variables,
+
+```
+docker run -it -e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY [-e AWS_SESSION_TOKEN] yashdalfthegray/cluster-cleanup --cluster-name spiderman --verbose --color --region ap-northeast-1
+```
+
+The `--color` and the `--verbose` options are optional, the `--verbose` option can be stacked as well using `-vv`. If no color in the output is desired, you can use `--no-color`. The `--color` option is the default. Using the `-e` option with `docker run` will pass the same environment variables from the host to the container.
+
+You can also mix and match the following command line options to provide credentials,
+
+| Option                    | effect                                        |
+| ------------------------- | --------------------------------------------- |
+| `--aws-access-key-id`     | provide the AWS access key ID                 |
+| `--aws-secret-access-key` | provide the AWS secret access key             |
+| `--aws-session-token`     | provide the AWS session token                 |
+| `--assume-role-arn`       | provide the ARN of the role to assume         |
+| `--external-id`           | provide the external ID of the role to assume |
+
+You can also run `docker run -it yashdalfthegray/cluster-cleanup --help` to see all of the options.
+
 ### CLI
 
 Run `npm install --global cluster-cleanup` to install the CLI. Once installed, run `cluster-cleanup --help` to learn about all the options. This CLI interfaces with AWS so credentials are required. The CLI can use credentials already configured from AWS CLI, and there are options to pass in an assume role ARN (and an external ID) or to use a profile.

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The `ClusterCleanup::deleteClusterAndResources` function is now async and returns a list of cleaned up resources.
 - The `ClusterCleanup::deleteClusterAndResources` function now takes an optional stack name and a verbosity level. Additionally, it takes an options object that you can use to tune the timings.
 - Verbosity across the library is now an integer and can range from 0 to 2, inclusive.
+- Added a color, and a no-color option as well, defaults to color enabled.
 
 ### Added
 

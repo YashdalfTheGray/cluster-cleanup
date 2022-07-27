@@ -34,7 +34,7 @@
   "homepage": "https://github.com/YashdalfTheGray/cluster-cleanup#readme",
   "devDependencies": {
     "@types/lodash": "~4.14.179",
-    "@types/node": "~18.0.6",
+    "@types/node": "~18.6.1",
     "ava": "~4.3.1",
     "nyc": "~15.1.0",
     "ts-node": "~10.9.1",

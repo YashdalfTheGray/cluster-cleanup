@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "~3.131.0",
-    "@aws-sdk/client-ecs": "~3.131.0",
+    "@aws-sdk/client-ecs": "~3.145.0",
     "@aws-sdk/credential-providers": "~3.131.0",
     "chalk": "4.1.2",
     "commander": "~9.4.0",

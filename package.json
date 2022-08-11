@@ -16,7 +16,8 @@
     "build": "tsc",
     "build:mocks": "tsc --project ./tsconfig.mocks.json",
     "start": "npm run build",
-    "clean": "npx rimraf dist/* out/*"
+    "clean": "npx rimraf dist/* out/*",
+    "publish-dryrun": "npm pack && tar -xvzf *.tgz && rm -rf package *.tgz"
   },
   "repository": {
     "type": "git",

@@ -116,6 +116,10 @@ export class MockAwsClient {
             'active:test:cluster:arn:fargate:service:arn-2',
           ],
         };
+      default:
+        throw new TypeError(
+          `Unrecognized launch type ${command.input.launchType}`
+        );
     }
   }
 

@@ -8,7 +8,7 @@ import { MockAwsClient } from '../mocks';
 test('cleanup goes through all the motions', async (t) => {
   const NOT_VERBOSE = 0;
 
-  const seenCommands = [];
+  const seenCommands: object[] = [];
   const mockAwsClient = new MockAwsClient((command) => {
     seenCommands.push(command);
   });

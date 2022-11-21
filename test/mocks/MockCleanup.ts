@@ -1,11 +1,4 @@
-import { Stack, StackEvent } from '@aws-sdk/client-cloudformation';
-import {
-  LaunchType,
-  Service,
-  ContainerInstance,
-  Task,
-  Cluster,
-} from '@aws-sdk/client-ecs';
+import { LaunchType } from '@aws-sdk/client-ecs';
 import {
   ClusterCleanupConfig,
   ClusterCleanupEventEmitter,
@@ -13,16 +6,7 @@ import {
   TimeoutOptions,
 } from '../../src';
 
-export interface MockOptions extends TimeoutOptions {
-  mock: {
-    stack: Stack;
-    stackEvents: StackEvent[];
-    services: Service[];
-    containerInstances: ContainerInstance[];
-    tasks: Task[];
-    cluster: Cluster;
-  };
-}
+import { defaultMockOptions, MockOptions } from '.';
 
 export class MockCleanup {
   private launchTypes: LaunchType[];
@@ -41,7 +25,7 @@ export class MockCleanup {
     clusterName: string,
     stackName = `EC2ContainerService-${clusterName}`,
     verbose = 0,
-    options: Partial<MockOptions> = {}
+    options: MockOptions & Partial<TimeoutOptions> = defaultMockOptions()
   ): Promise<string[]> {
     this.events.verbose = verbose;
 
@@ -52,17 +36,12 @@ export class MockCleanup {
     clusterName: string,
     stackName?: string,
     verbose = 0,
-    options: Partial<MockOptions> = {}
+    options: MockOptions & Partial<TimeoutOptions> = defaultMockOptions()
   ): Promise<string[]> {
-    const cleanedUpResources = [];
+    const cleanedUpResources: string[] = [];
     const { stack, stackEvents, services, containerInstances, tasks, cluster } =
       options.mock;
-
-    let startTime: number;
-
-    if (verbose) {
-      startTime = Date.now();
-    }
+    const startTime = Date.now();
 
     this.events.emit(ClusterCleanupEvents.start, clusterName);
     this.events.emit(ClusterCleanupEvents.stackFound, stack);
@@ -72,14 +51,14 @@ export class MockCleanup {
     if (services.length > 0) {
       this.events.emit(
         ClusterCleanupEvents.servicesFound,
-        services.map((s) => s.serviceArn)
+        services.map((s) => s.serviceArn!)
       );
       await this.randomFakeDelay(400, 500);
       this.events.emit(ClusterCleanupEvents.servicesScaledDown, services);
     }
 
     if (tasks.length > 0) {
-      const taskIds = tasks.map((t) => t.taskArn);
+      const taskIds = tasks.map((t) => t.taskArn!);
       this.events.emit(ClusterCleanupEvents.tasksFound, taskIds);
       await this.randomFakeDelay(100, 500);
       cleanedUpResources.push(...taskIds);
@@ -88,7 +67,7 @@ export class MockCleanup {
 
     if (containerInstances.length > 0) {
       const containerInstanceIds = containerInstances.map(
-        (i) => i.containerInstanceArn
+        (i) => i.containerInstanceArn!
       );
       this.events.emit(
         ClusterCleanupEvents.instancesFound,
@@ -103,7 +82,7 @@ export class MockCleanup {
     }
 
     if (services.length > 0) {
-      const serviceIds = services.map((s) => s.serviceArn);
+      const serviceIds = services.map((s) => s.serviceArn!);
       cleanedUpResources.push(...serviceIds);
       await this.randomFakeDelay(25, 100);
       this.events.emit(ClusterCleanupEvents.servicesDeleted, services);
@@ -113,7 +92,7 @@ export class MockCleanup {
       await this.randomFakeDelay(25, 100);
       this.events.emit(
         ClusterCleanupEvents.stackDeletionStarted,
-        stack.StackId
+        stack.StackId!
       );
 
       try {
@@ -121,26 +100,29 @@ export class MockCleanup {
 
         stackEvents.forEach(async (e) => {
           this.events.emit(ClusterCleanupEvents.resourceDeleted, e);
-          cleanedUpResources.push(e.PhysicalResourceId);
+          cleanedUpResources.push(e.PhysicalResourceId!);
           await this.randomFakeDelay(100, 1000);
         });
 
-        this.events.emit(ClusterCleanupEvents.stackDeletionDone, stack.StackId);
-        cleanedUpResources.push(stack.StackId);
+        this.events.emit(
+          ClusterCleanupEvents.stackDeletionDone,
+          stack.StackId!
+        );
+        cleanedUpResources.push(stack.StackId!);
 
         await this.randomFakeDelay(400, 500);
         this.events.emit(ClusterCleanupEvents.clusterDeleted, cluster);
-        this.events.emit(ClusterCleanupEvents.done, cluster.clusterName);
-        cleanedUpResources.push(cluster.clusterArn);
+        this.events.emit(ClusterCleanupEvents.done, cluster.clusterName!);
+        cleanedUpResources.push(cluster.clusterArn!);
       } catch (e) {
         this.events.emit(ClusterCleanupEvents.doneWithError, e);
-        return;
+        return [];
       }
     } else {
       await this.randomFakeDelay(400, 500);
       this.events.emit(ClusterCleanupEvents.clusterDeleted, cluster);
-      this.events.emit(ClusterCleanupEvents.done, cluster.clusterName);
-      cleanedUpResources.push(cluster.clusterArn);
+      this.events.emit(ClusterCleanupEvents.done, cluster.clusterName!);
+      cleanedUpResources.push(cluster.clusterArn!);
     }
 
     if (verbose) {

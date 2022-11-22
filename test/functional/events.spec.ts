@@ -11,7 +11,9 @@ test('cleanup events are fired as expected', async (t) => {
   const seenEvents = new Set();
 
   Object.keys(ClusterCleanupEvents).forEach((e) => {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const event = ClusterCleanupEvents[e];
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     eventEmitter.on(event, (_) => {
       seenEvents.add(e);
     });

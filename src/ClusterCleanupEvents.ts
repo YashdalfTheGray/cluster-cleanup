@@ -77,7 +77,7 @@ export class ClusterCleanupEventEmitter {
     event: ClusterCleanupEvents.resourceDeleted,
     resource: StackEvent
   ): boolean;
-  public emit<E extends ClusterCleanupEvents, D extends any[]>(
+  public emit<E extends ClusterCleanupEvents, D extends unknown[]>(
     event: E,
     ...data: D
   ): boolean {
@@ -151,7 +151,7 @@ export class ClusterCleanupEventEmitter {
     event: ClusterCleanupEvents.resourceDeleted,
     l: Listener<StackEvent>
   ): RemoveListenerFunction;
-  public on<E extends ClusterCleanupEvents, D extends any[]>(
+  public on<E extends ClusterCleanupEvents, D extends unknown[]>(
     event: E,
     l: Listener<D>
   ): RemoveListenerFunction {

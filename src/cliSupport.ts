@@ -231,7 +231,7 @@ export function decorateClusterCleanup(instance: ClusterCleanup, verbose = 0) {
   return instance;
 }
 
-export function generateCliList<T extends Object>(
+export function generateCliList<T>(
   things: T[],
   color = chalk.cyan,
   stringifier?: (t: T) => string

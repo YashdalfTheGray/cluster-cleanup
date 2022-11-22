@@ -70,7 +70,7 @@ export class ClusterCleanup {
     verbose?: number,
     options: TimeoutOptions = {}
   ): Promise<string[]> {
-    const cleanedUpResources = [];
+    const cleanedUpResources: string[] = [];
 
     // 1. find CloudFormation stack
     // 2. find all services
@@ -166,7 +166,7 @@ export class ClusterCleanup {
 
         if (result.state !== WaiterState.SUCCESS) {
           clearInterval(pollTimer);
-          throw new Error(result.reason);
+          throw new Error(result.reason as string);
         }
 
         this.events.emit(ClusterCleanupEvents.stackDeletionDone, stack.StackId);
@@ -178,7 +178,7 @@ export class ClusterCleanup {
         cleanedUpResources.push(deletedCluster.clusterArn);
         this.events.emit(ClusterCleanupEvents.done, clusterName);
       } catch (e) {
-        this.events.emit(ClusterCleanupEvents.doneWithError, e);
+        this.events.emit(ClusterCleanupEvents.doneWithError, e as Error);
         return [];
       }
     } else {
@@ -205,7 +205,7 @@ export class ClusterCleanup {
       const response = await this.ecs.send(command);
       return response.clusters;
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -219,7 +219,7 @@ export class ClusterCleanup {
           .filter(({ clusterName }) => clusterName === clusterName).length !== 0
       );
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return false;
     }
   }
@@ -235,7 +235,7 @@ export class ClusterCleanup {
       const describeStackResponse = await this.cloudFormation.send(command);
       return describeStackResponse.Stacks[0];
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return null;
     }
   }
@@ -252,9 +252,9 @@ export class ClusterCleanup {
 
       return listServiceResponses.reduce((acc, r) => {
         return acc.concat(r.serviceArns);
-      }, []);
+      }, [] as string[]);
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -278,9 +278,9 @@ export class ClusterCleanup {
 
       return scaleServiceResponses.reduce((acc, r) => {
         return acc.concat(r.service);
-      }, []);
+      }, [] as Service[]);
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -291,7 +291,7 @@ export class ClusterCleanup {
       const listTasksResponse = await this.ecs.send(command);
       return listTasksResponse.taskArns;
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -311,7 +311,7 @@ export class ClusterCleanup {
       );
       return stopTaskResponses.map((r) => r.task);
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -324,7 +324,7 @@ export class ClusterCleanup {
 
       return listInstanceResponse.containerInstanceArns;
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -348,9 +348,9 @@ export class ClusterCleanup {
 
       return deregisterResponses.reduce((acc, r) => {
         return acc.concat(r.containerInstance);
-      }, []);
+      }, [] as ContainerInstance[]);
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -370,14 +370,14 @@ export class ClusterCleanup {
 
       return deleteServicesResponses.reduce((acc, r) => {
         return acc.concat(r.service);
-      }, []);
+      }, [] as Service[]);
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
 
-  private async deleteStack(clusterName: string): Promise<Object> {
+  private async deleteStack(clusterName: string): Promise<unknown> {
     try {
       const deleteStackResponse = await this.cloudFormation.send(
         new DeleteStackCommand({
@@ -387,8 +387,8 @@ export class ClusterCleanup {
 
       return deleteStackResponse;
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
-      return e;
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
+      return e as Error;
     }
   }
 
@@ -404,7 +404,7 @@ export class ClusterCleanup {
 
       return describeStackEventsResponse.StackEvents;
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.error, e);
+      this.events.emit(ClusterCleanupEvents.error, e as Error);
       return [];
     }
   }
@@ -444,10 +444,11 @@ export class ClusterCleanup {
             this.events.emit(ClusterCleanupEvents.resourceDeleted, e);
           });
       } catch (e) {
-        this.events.emit(ClusterCleanupEvents.error, e);
+        this.events.emit(ClusterCleanupEvents.error, e as Error);
       }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     return setInterval(pollEvent, pollIntervalInMs);
   }
 
@@ -458,7 +459,7 @@ export class ClusterCleanup {
       );
       return response.cluster;
     } catch (e) {
-      this.events.emit(ClusterCleanupEvents.doneWithError, e);
+      this.events.emit(ClusterCleanupEvents.doneWithError, e as Error);
     }
   }
 }

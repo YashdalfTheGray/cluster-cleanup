@@ -217,7 +217,7 @@ export class MockAwsClient {
   }
 
   private mockDeleteStackResponse(
-    command: DeleteStackCommand
+    _command: DeleteStackCommand
   ): DeleteStackCommandOutput {
     return {
       $metadata: {},

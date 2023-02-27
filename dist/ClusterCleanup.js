@@ -290,6 +290,7 @@ class ClusterCleanup {
                 this.events.emit(_1.ClusterCleanupEvents.error, e);
             }
         };
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         return setInterval(pollEvent, pollIntervalInMs);
     }
     async deleteCluster(clusterName) {

@@ -35,7 +35,7 @@
   "homepage": "https://github.com/YashdalfTheGray/cluster-cleanup#readme",
   "devDependencies": {
     "@types/lodash": "~4.14.191",
-    "@types/node": "~18.14.2",
+    "@types/node": "~18.15.11",
     "@typescript-eslint/eslint-plugin": "~5.54.0",
     "@typescript-eslint/parser": "~5.54.0",
     "ava": "~5.2.0",

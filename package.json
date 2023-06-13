@@ -45,9 +45,9 @@
     "typescript": "~5.0.4"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "~3.315.0",
-    "@aws-sdk/client-ecs": "~3.319.0",
-    "@aws-sdk/credential-providers": "~3.325.0",
+    "@aws-sdk/client-cloudformation": "~3.350.0",
+    "@aws-sdk/client-ecs": "~3.350.0",
+    "@aws-sdk/credential-providers": "~3.351.0",
     "chalk": "4.1.2",
     "commander": "~10.0.0",
     "lodash": "~4.17.20"

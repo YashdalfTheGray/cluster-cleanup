@@ -21,7 +21,7 @@ var ClusterCleanupEvents;
     ClusterCleanupEvents["stackDeletionDone"] = "ClusterCleanup.stackDeletionDone";
     ClusterCleanupEvents["resourceDeleted"] = "ClusterCleanup.resourceDeleted";
     ClusterCleanupEvents["clusterDeleted"] = "ClusterCleanup.clusterDeleted";
-})(ClusterCleanupEvents = exports.ClusterCleanupEvents || (exports.ClusterCleanupEvents = {}));
+})(ClusterCleanupEvents || (exports.ClusterCleanupEvents = ClusterCleanupEvents = {}));
 class ClusterCleanupEventEmitter {
     events;
     verbose;

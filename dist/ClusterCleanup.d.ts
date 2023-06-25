@@ -1,5 +1,5 @@
 import { CloudFormation } from '@aws-sdk/client-cloudformation';
-import { ECS, LaunchType } from '@aws-sdk/client-ecs';
+import { ECS } from '@aws-sdk/client-ecs';
 import { ClusterCleanupEventEmitter, ClusterCleanupConfig, TimeoutOptions } from '.';
 export declare class ClusterCleanup {
     private ecs;
@@ -8,7 +8,7 @@ export declare class ClusterCleanup {
     private launchTypes;
     private TEN_MINUTES_IN_MS;
     private THIRTY_SECONDS_IN_MS;
-    constructor(config?: ClusterCleanupConfig, ecs?: ECS, cloudFormation?: CloudFormation, events?: ClusterCleanupEventEmitter, launchTypes?: LaunchType[]);
+    constructor(config?: ClusterCleanupConfig, ecs?: ECS, cloudFormation?: CloudFormation, events?: ClusterCleanupEventEmitter, launchTypes?: ("EC2" | "FARGATE")[]);
     get eventEmitter(): ClusterCleanupEventEmitter;
     deleteClusterAndResources(clusterName: string, stackName?: string, verbose?: number, options?: TimeoutOptions): Promise<string[]>;
     private deleteHelper;

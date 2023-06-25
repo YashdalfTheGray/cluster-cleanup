@@ -13,7 +13,6 @@
     "removeComments": false,
     "noLib": false,
     "preserveConstEnums": true,
-    "suppressImplicitAnyIndexErrors": true,
     "outDir": "./dist"
   },
   "filesGlob": ["./src/**/*.ts"],
